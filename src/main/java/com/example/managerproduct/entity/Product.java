@@ -34,6 +34,9 @@ public class Product {
     @Column(name = "quantity")
     private Long quantity;
 
+    @Column(name = "image_link")
+    private String imageLink;
+
     @Column(name = "status", length = 1)
     private String status;
 

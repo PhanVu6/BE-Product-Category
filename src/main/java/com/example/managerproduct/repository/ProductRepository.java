@@ -10,12 +10,15 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    @Query(value = "from Product p " +
+    @Query(value = "select distinct p " +
+            "from Product p " +
             "left join fetch p.productCategories pc " +
             "left join fetch pc.category c " +
-            "where (:name is null or p.name like %:name%) " +
+            "where (:str is null or p.name like %:str%) " +
+            "or p.product_code like %:str% " +
             "and (pc.status is null or pc.status = '1') " +
+            "and p.status = '1' " +
             "order by p.id")
-    Page<Product> getAll(@Param("name") String name,
+    Page<Product> getAll(@Param("str") String str,
                          Pageable pageable);
 }

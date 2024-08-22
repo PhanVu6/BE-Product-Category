@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface IProductService {
-    ApiResponse<Page<ProductDto>> getAllProduct(String name, Pageable pageable);
+    ApiResponse<Page<ProductDto>> getAllProduct(String str, Pageable pageable);
 
     ApiResponse<ProductDto> create(CreateProductDto productDto, String createBy);
 

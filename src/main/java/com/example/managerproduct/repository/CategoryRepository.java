@@ -10,8 +10,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
-    @Query(value = "from Category c " +
-            "where (:name is null or c.name like %:name%) ")
-    Page<Category> getAll(@Param("name") String name,
+    @Query(value = "select distinct c " +
+            "from Category c " +
+            "where (:str is null or c.name like %:str%) " +
+            "or c.category_code like %:str% ")
+    Page<Category> getAll(@Param("str") String str,
                           Pageable pageable);
 }

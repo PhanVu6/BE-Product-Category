@@ -43,9 +43,9 @@ public class ProductService implements IProductService {
     private final ProductCategoryRepository productCategoryRepository;
 
     @Override
-    public ApiResponse<Page<ProductDto>> getAllProduct(String name, Pageable pageable) {
+    public ApiResponse<Page<ProductDto>> getAllProduct(String str, Pageable pageable) {
         ApiResponse<Page<ProductDto>> apiResponse = new ApiResponse<>();
-        Page<Product> products = productRepository.getAll(name, pageable);
+        Page<Product> products = productRepository.getAll(str, pageable);
 
         Map<Long, ProductDto> storeProductDto = products.stream().collect(Collectors.toMap(
                 Product::getId,

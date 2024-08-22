@@ -25,6 +25,8 @@ public class ProductDto {
 
     private Long quantity;
 
+    private String imageLink;
+    
     private String status;
 
     private Date createdDate;
