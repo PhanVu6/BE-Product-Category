@@ -82,45 +82,52 @@ public class ProductService implements IProductService {
         product.setCreatedBy(createBy);
         product = productRepository.save(product);
 
+        // Kiểm tra nếu danh sách category không có thì chỉ trả về tạo mình product
+        if (productDto.getCategories() == null || productDto.getCategories().isEmpty()) {
+            ProductDto result = productMapper.toDto(product);
+            apiResponse.setResult(result);
+            apiResponse.setMessage(messageSource.getMessage("success.create", null, LocaleContextHolder.getLocale()));
+            return apiResponse;
+        }
 
-        Set<ProductCategory> productCategories = new HashSet<>();
+        // Lấy danh sách ID Category từ DTO
+        Set<Long> categoryIds = productDto.getCategories().stream()
+                .map(CategoryDto::getId)
+                .collect(Collectors.toSet());
 
-        List<Category> categoryList = new ArrayList<>();
-        for (CategoryDto categoryDto : productDto.getCategories()) {
-            Long categoryId = categoryDto.getId();
+        // Tìm tất cả các Category có ID từ danh sách
+        List<Category> existingCategoies = categoryRepository.findAllById(categoryIds);
 
-            Category category;
+        // Tạo mới các Category không tồn tại
+        List<Category> newCategories = productDto.getCategories().stream()
+                .filter(categoryDto -> categoryDto.getId() == null || !categoryIds.contains(categoryDto.getId()))
+                .map(categoryDto -> {
+                    Category newCategory = categoryMapper.toEntity(categoryDto);
+                    newCategory.setCreatedBy(createBy);
+                    newCategory.setCreatedDate(new Date());
+                    return categoryRepository.save(newCategory);
+                }).collect(Collectors.toList());
 
-            if (categoryId == null) {
-                category = new Category();
-                category.setName(categoryDto.getName());
-                category.setDescription(categoryDto.getDescription());
-                category.setStatus(categoryDto.getStatus());
-                categoryList.add(category);
+        // Kết hợp Category đã tồn tại và Category mới
+        List<Category> allCategories = new ArrayList<>(existingCategoies);
+        allCategories.addAll(newCategories);
 
-                categoryDto.setId(category.getId());
-            } else {
-                category = categoryRepository.findById(categoryId)
-                        .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
-
-                category.setName(categoryDto.getName());
-                category.setDescription(categoryDto.getDescription());
-                categoryList.add(category);
-            }
+        List<ProductCategory> productCategories = new ArrayList<>();
+        for (Category category : allCategories
+        ) {
             ProductCategory productCategory = new ProductCategory();
             productCategory.setProduct(product);
             productCategory.setCategory(category);
-            productCategory.setStatus(categoryDto.getStatus());
+            productCategory.setStatus("1");
             productCategory.setCreatedBy(createBy);
             productCategory.setCreatedDate(new Date());
             productCategories.add(productCategory);
         }
 
-        categoryRepository.saveAll(categoryList);
         productCategoryRepository.saveAll(productCategories);
 
         ProductDto result = productMapper.toDto(product);
-        result.setCategories(categoryMapper.DTO_LIST(categoryList));
+        result.setCategories(categoryMapper.DTO_LIST(allCategories));
 
         apiResponse.setResult(result);
         apiResponse.setMessage(messageSource.getMessage("success.create", null, LocaleContextHolder.getLocale()));
