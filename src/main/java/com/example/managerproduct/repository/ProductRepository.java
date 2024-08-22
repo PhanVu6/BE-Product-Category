@@ -11,7 +11,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query(value = "from Product p " +
-            "where (:name is null or p.name like %:name%) ")
+            "left join fetch p.productCategories pc " +
+            "left join fetch pc.category c " +
+            "where (:name is null or p.name like %:name%) " +
+            "and (pc.status is null or pc.status = '1') " +
+            "order by p.id")
     Page<Product> getAll(@Param("name") String name,
                          Pageable pageable);
 }

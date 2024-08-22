@@ -87,6 +87,7 @@ public class CategoryService implements ICategoryService {
         return apiResponse;
     }
 
+    @Transactional
     @Override
     public ApiResponse<Boolean> delete(Long id) {
         ApiResponse<Boolean> apiResponse = new ApiResponse<>();

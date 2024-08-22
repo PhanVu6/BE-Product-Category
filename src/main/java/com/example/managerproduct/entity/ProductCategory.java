@@ -26,11 +26,11 @@ public class ProductCategory {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @Temporal(TemporalType.DATE)
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_date")
     private Date createdDate;
 
-    @Temporal(TemporalType.DATE)
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "modified_date")
     private Date modifiedDate;
 
@@ -39,5 +39,8 @@ public class ProductCategory {
 
     @Column(name = "modified_by")
     private String modifiedBy;
+
+    @Column(name = "status", length = 1)
+    private String status;
 
 }

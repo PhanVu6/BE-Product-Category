@@ -3,13 +3,19 @@ package com.example.managerproduct.service.Impl;
 import com.example.managerproduct.dto.request.CreateProductDto;
 import com.example.managerproduct.dto.request.UpdateProductDto;
 import com.example.managerproduct.dto.response.ApiResponse;
+import com.example.managerproduct.dto.response.CategoryDto;
 import com.example.managerproduct.dto.response.ProductDto;
+import com.example.managerproduct.entity.Category;
 import com.example.managerproduct.entity.Product;
+import com.example.managerproduct.entity.ProductCategory;
 import com.example.managerproduct.exception.AppException;
 import com.example.managerproduct.exception.ErrorCode;
 import com.example.managerproduct.mapper.request.CreateProductMapper;
 import com.example.managerproduct.mapper.request.UpdateProductMapper;
+import com.example.managerproduct.mapper.response.CategoryMapper;
 import com.example.managerproduct.mapper.response.ProductMapper;
+import com.example.managerproduct.repository.CategoryRepository;
+import com.example.managerproduct.repository.ProductCategoryRepository;
 import com.example.managerproduct.repository.ProductRepository;
 import com.example.managerproduct.service.IProductService;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +27,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,15 +36,32 @@ public class ProductService implements IProductService {
     private final MessageSource messageSource;
     private final ProductRepository productRepository;
     private final ProductMapper productMapper = ProductMapper.INSTANCE;
+    private final CategoryMapper categoryMapper = CategoryMapper.INSTANCE;
     private final UpdateProductMapper updateProductMapper = UpdateProductMapper.INSTANCE;
     private final CreateProductMapper createProductMapper = CreateProductMapper.INSTANCE;
+    private final CategoryRepository categoryRepository;
+    private final ProductCategoryRepository productCategoryRepository;
 
     @Override
     public ApiResponse<Page<ProductDto>> getAllProduct(String name, Pageable pageable) {
         ApiResponse<Page<ProductDto>> apiResponse = new ApiResponse<>();
         Page<Product> products = productRepository.getAll(name, pageable);
-        List<ProductDto> productDtos = productMapper.DTO_LIST(products.getContent());
 
+        Map<Long, ProductDto> storeProductDto = products.stream().collect(Collectors.toMap(
+                Product::getId,
+                productMapper::toDto
+        ));
+
+        for (Product product : products) {
+            List<Category> courses = product.getProductCategories()
+                    .stream().map(ProductCategory::getCategory)
+                    .collect(Collectors.toList());
+
+            storeProductDto.get(product.getId()).setCategories(categoryMapper.DTO_LIST(courses));
+        }
+
+
+        List<ProductDto> productDtos = new ArrayList<>(storeProductDto.values());
         Page<ProductDto> result = new PageImpl<>(productDtos, pageable, products.getTotalElements());
 
         apiResponse.setResult(result);
@@ -58,7 +81,46 @@ public class ProductService implements IProductService {
         product.setCreatedDate(new Date());
         product.setCreatedBy(createBy);
         product = productRepository.save(product);
+
+
+        Set<ProductCategory> productCategories = new HashSet<>();
+
+        List<Category> categoryList = new ArrayList<>();
+        for (CategoryDto categoryDto : productDto.getCategories()) {
+            Long categoryId = categoryDto.getId();
+
+            Category category;
+
+            if (categoryId == null) {
+                category = new Category();
+                category.setName(categoryDto.getName());
+                category.setDescription(categoryDto.getDescription());
+                category.setStatus(categoryDto.getStatus());
+                categoryList.add(category);
+
+                categoryDto.setId(category.getId());
+            } else {
+                category = categoryRepository.findById(categoryId)
+                        .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+                category.setName(categoryDto.getName());
+                category.setDescription(categoryDto.getDescription());
+                categoryList.add(category);
+            }
+            ProductCategory productCategory = new ProductCategory();
+            productCategory.setProduct(product);
+            productCategory.setCategory(category);
+            productCategory.setStatus(categoryDto.getStatus());
+            productCategory.setCreatedBy(createBy);
+            productCategory.setCreatedDate(new Date());
+            productCategories.add(productCategory);
+        }
+
+        categoryRepository.saveAll(categoryList);
+        productCategoryRepository.saveAll(productCategories);
+
         ProductDto result = productMapper.toDto(product);
+        result.setCategories(categoryMapper.DTO_LIST(categoryList));
 
         apiResponse.setResult(result);
         apiResponse.setMessage(messageSource.getMessage("success.create", null, LocaleContextHolder.getLocale()));
@@ -79,13 +141,68 @@ public class ProductService implements IProductService {
         product.setId(id);
         product.setModifiedDate(new Date());
         product.setModifiedBy(modifiedBy);
+
+        // Tạo trực tiếp Category mới
+        List<Category> categories = CategoryMapper.INSTANCE.ENTITY_LIST(productDto.getCategories());
+        categories = categoryRepository.saveAll(categories);
+
+        // Lấy ra id các Categry mới
+        Set<Long> idCategoriesNew = categories.stream()
+                .map(Category::getId)
+                .collect(Collectors.toSet());
+
+
+        // Lấy ra ProductCategory có quan hệ theo id Product
+        List<ProductCategory> existingPC = productCategoryRepository.findByStudentId(product.getId());
+        Map<Long, ProductCategory> productCategoryMap = existingPC.stream()
+                .collect(Collectors.toMap(pc -> pc.getCategory().getId(), pc -> pc));
+
+        // Thêm các Category id update và mới create
+        Set<Long> newCategoryIds = new HashSet<>(productDto.getCategoryIds());
+        newCategoryIds.addAll(idCategoriesNew);
+
+        // Lấy ra các id có trong student course, nhưng không có trong update để hủy Course
+        Set<Long> idToCloseCategories = productCategoryMap.keySet().stream()
+                .filter(idRelation -> !newCategoryIds.contains(idRelation))
+                .collect(Collectors.toSet());
+
+        if (!idToCloseCategories.isEmpty()) {
+            productCategoryRepository.changeStatusByProductAndCategories(product.getId(), idToCloseCategories, "0");
+        }
+
+        // Lấy tất cả Course id để cập nhập trong StudentCourse
+        categories = categoryRepository.findAllById(newCategoryIds);
+
+        Set<ProductCategory> newProductCategory = categories.stream()
+                .map(category -> {
+                    ProductCategory productCategory = productCategoryMap.get(category.getId());
+                    if (productCategory == null) {
+                        productCategory = new ProductCategory();
+                        
+                        productCategory.setCreatedDate(new Date());
+                        productCategory.setCreatedBy(modifiedBy);
+                    }
+                    productCategory.setProduct(product);
+                    productCategory.setCategory(category);
+                    productCategory.setModifiedDate(new Date());
+                    productCategory.setModifiedBy(modifiedBy);
+                    productCategory.setStatus("1");
+                    return productCategory;
+                })
+                .collect(Collectors.toSet());
+
+
+        productCategoryRepository.saveAll(newProductCategory);
+
         ProductDto result = productMapper.toDto(product);
+        result.setCategories(categoryMapper.DTO_LIST(categories));
 
         apiResponse.setResult(result);
         apiResponse.setMessage(messageSource.getMessage("success.update", null, LocaleContextHolder.getLocale()));
         return apiResponse;
     }
 
+    @Transactional
     @Override
     public ApiResponse<Boolean> delete(Long id) {
         ApiResponse<Boolean> apiResponse = new ApiResponse<>();

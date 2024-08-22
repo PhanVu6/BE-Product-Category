@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -34,4 +35,5 @@ public class ProductDto {
 
     private String modifiedBy;
 
+    private List<CategoryDto> categories;
 }

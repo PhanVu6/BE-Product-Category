@@ -1,6 +1,9 @@
 package com.example.managerproduct.dto.request;
 
+import com.example.managerproduct.dto.response.CategoryDto;
 import lombok.*;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -15,5 +18,6 @@ public class UpdateProductDto {
     private String product_code;
     private Long quantity;
     private String status;
-
+    private List<Long> categoryIds;
+    private List<CategoryDto> categories;
 }

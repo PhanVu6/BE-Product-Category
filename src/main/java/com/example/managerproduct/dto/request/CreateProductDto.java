@@ -1,6 +1,9 @@
 package com.example.managerproduct.dto.request;
 
+import com.example.managerproduct.dto.response.CategoryDto;
 import lombok.*;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -14,5 +17,5 @@ public class CreateProductDto {
     private String product_code;
     private Long quantity;
     private String status;
-
+    private List<CategoryDto> categories;
 }
