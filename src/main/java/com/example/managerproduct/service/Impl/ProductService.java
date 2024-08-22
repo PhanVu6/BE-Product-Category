@@ -142,16 +142,6 @@ public class ProductService implements IProductService {
         product.setModifiedDate(new Date());
         product.setModifiedBy(modifiedBy);
 
-        // Tạo trực tiếp Category mới
-        List<Category> categories = CategoryMapper.INSTANCE.ENTITY_LIST(productDto.getCategories());
-        categories = categoryRepository.saveAll(categories);
-
-        // Lấy ra id các Categry mới
-        Set<Long> idCategoriesNew = categories.stream()
-                .map(Category::getId)
-                .collect(Collectors.toSet());
-
-
         // Lấy ra ProductCategory có quan hệ theo id Product
         List<ProductCategory> existingPC = productCategoryRepository.findByStudentId(product.getId());
         Map<Long, ProductCategory> productCategoryMap = existingPC.stream()
@@ -159,7 +149,6 @@ public class ProductService implements IProductService {
 
         // Thêm các Category id update và mới create
         Set<Long> newCategoryIds = new HashSet<>(productDto.getCategoryIds());
-        newCategoryIds.addAll(idCategoriesNew);
 
         // Lấy ra các id có trong student course, nhưng không có trong update để hủy Course
         Set<Long> idToCloseCategories = productCategoryMap.keySet().stream()
@@ -170,15 +159,15 @@ public class ProductService implements IProductService {
             productCategoryRepository.changeStatusByProductAndCategories(product.getId(), idToCloseCategories, "0");
         }
 
-        // Lấy tất cả Course id để cập nhập trong StudentCourse
-        categories = categoryRepository.findAllById(newCategoryIds);
+        // Lấy tất cả Categoy id để cập nhập trong StudentCourse
+        List<Category> categories = categoryRepository.findAllById(newCategoryIds);
 
         Set<ProductCategory> newProductCategory = categories.stream()
                 .map(category -> {
                     ProductCategory productCategory = productCategoryMap.get(category.getId());
                     if (productCategory == null) {
                         productCategory = new ProductCategory();
-                        
+
                         productCategory.setCreatedDate(new Date());
                         productCategory.setCreatedBy(modifiedBy);
                     }
