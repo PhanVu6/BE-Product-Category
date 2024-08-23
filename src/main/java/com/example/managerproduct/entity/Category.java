@@ -42,7 +42,7 @@ public class Category {
     @Column(name = "category_code")
     private String category_code;
 
-    @Column(name = "status", length = 1)
+    @Column(name = "status", length = 20)
     private String status;
 
     @OneToMany(mappedBy = "category", cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE})

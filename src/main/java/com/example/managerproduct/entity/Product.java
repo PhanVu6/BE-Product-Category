@@ -37,7 +37,7 @@ public class Product {
     @Column(name = "image_link")
     private String imageLink;
 
-    @Column(name = "status", length = 1)
+    @Column(name = "status", length = 20)
     private String status;
 
     @Temporal(TemporalType.TIMESTAMP)

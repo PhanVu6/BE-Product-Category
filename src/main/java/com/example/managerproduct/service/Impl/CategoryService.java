@@ -58,6 +58,7 @@ public class CategoryService implements ICategoryService {
         Category category = createCategoryMapper.toEntity(categoryDto);
         category.setCreatedDate(new Date());
         category.setCreatedBy(createBy);
+        category.setStatus("AVAILABLE");
         category = categoryRepository.save(category);
         CategoryDto result = categoryMapper.toDto(category);
 

@@ -34,8 +34,8 @@ public class CreateProductDto {
 
     private String imageLink;
 
-    @NotBlank(message = "error.notBlank")
-    @Pattern(regexp = "1|0", message = "error.statusInput")
+    @NotNull(message = "error.notBlank")
+    @Pattern(regexp = "AVAILABLE|UNAVAILABLE", message = "error.statusInput")
     private String status;
 
     private List<@Valid CategoryDto> categories;

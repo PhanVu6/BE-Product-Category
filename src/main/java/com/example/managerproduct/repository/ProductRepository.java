@@ -14,10 +14,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "from Product p " +
             "left join fetch p.productCategories pc " +
             "left join fetch pc.category c " +
-            "where (:str is null or p.name like %:str%) " +
-            "or p.product_code like %:str% " +
-            "and (pc.status is null or pc.status = '1') " +
-            "and p.status = '1' " +
+            "where p.status = 'AVAILABLE' " +
+            "and (:str is null or p.name like %:str% or p.product_code like %:str%) " +
             "order by p.id")
     Page<Product> getAll(@Param("str") String str,
                          Pageable pageable);

@@ -41,7 +41,7 @@ public class UpdateProductDto {
     private String imageLink;
 
     @NotNull(message = "error.notBlank")
-    @Pattern(regexp = "1|0", message = "error.statusInput")
+    @Pattern(regexp = "AVAILABLE|UNAVAILABLE", message = "error.statusInput")
     private String status;
 
     private List<Long> categoryIds;

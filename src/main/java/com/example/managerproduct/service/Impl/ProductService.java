@@ -54,7 +54,9 @@ public class ProductService implements IProductService {
 
         for (Product product : products) {
             List<Category> courses = product.getProductCategories()
-                    .stream().map(ProductCategory::getCategory)
+                    .stream().filter(pc -> pc.getStatus().equals("AVAILABLE")
+                            && pc.getCategory().getStatus().equals("AVAILABLE"))
+                    .map(ProductCategory::getCategory)
                     .collect(Collectors.toList());
 
             storeProductDto.get(product.getId()).setCategories(categoryMapper.DTO_LIST(courses));
@@ -118,7 +120,7 @@ public class ProductService implements IProductService {
             ProductCategory productCategory = new ProductCategory();
             productCategory.setProduct(product);
             productCategory.setCategory(category);
-            productCategory.setStatus("1");
+            productCategory.setStatus("AVAILABLE");
             productCategory.setCreatedBy(createBy);
             productCategory.setCreatedDate(new Date());
             productCategories.add(productCategory);
@@ -163,7 +165,7 @@ public class ProductService implements IProductService {
                 .collect(Collectors.toSet());
 
         if (!idToCloseCategories.isEmpty()) {
-            productCategoryRepository.changeStatusByProductAndCategories(product.getId(), idToCloseCategories, "0");
+            productCategoryRepository.changeStatusByProductAndCategories(product.getId(), idToCloseCategories, "UNAVAILABLE");
         }
 
         // Lấy tất cả Categoy id để cập nhập trong StudentCourse
@@ -182,7 +184,7 @@ public class ProductService implements IProductService {
                     productCategory.setCategory(category);
                     productCategory.setModifiedDate(new Date());
                     productCategory.setModifiedBy(modifiedBy);
-                    productCategory.setStatus("1");
+                    productCategory.setStatus("AVAILABLE");
                     return productCategory;
                 })
                 .collect(Collectors.toSet());

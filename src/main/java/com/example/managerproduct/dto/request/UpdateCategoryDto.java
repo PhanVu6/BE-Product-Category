@@ -28,8 +28,8 @@ public class UpdateCategoryDto {
     @Size(max = 10, message = "error.invalidInput")
     private String category_code;
 
-    @NotBlank(message = "error.notBlank")
-    @Pattern(regexp = "1|0", message = "error.statusInput")
+    @NotNull(message = "error.notBlank")
+    @Pattern(regexp = "AVAILABLE|UNAVAILABLE", message = "error.statusInput")
     private String status;
 
 }

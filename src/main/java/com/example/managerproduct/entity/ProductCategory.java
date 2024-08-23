@@ -40,7 +40,7 @@ public class ProductCategory {
     @Column(name = "modified_by")
     private String modifiedBy;
 
-    @Column(name = "status", length = 1)
+    @Column(name = "status", length = 20)
     private String status;
 
 }
