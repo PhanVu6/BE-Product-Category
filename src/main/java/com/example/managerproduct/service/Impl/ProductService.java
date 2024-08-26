@@ -45,6 +45,8 @@ public class ProductService implements IProductService {
     @Override
     public ApiResponse<Page<ProductDto>> getAllProduct(String str, Pageable pageable) {
         ApiResponse<Page<ProductDto>> apiResponse = new ApiResponse<>();
+        apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
+
         Page<Product> products = productRepository.getAll(str, pageable);
 
         Map<Long, ProductDto> storeProductDto = products.stream().collect(Collectors.toMap(
@@ -53,13 +55,11 @@ public class ProductService implements IProductService {
         ));
 
         for (Product product : products) {
-            List<Category> courses = product.getProductCategories()
-                    .stream().filter(pc -> pc.getStatus().equals("AVAILABLE")
-                            && pc.getCategory().getStatus().equals("AVAILABLE"))
-                    .map(ProductCategory::getCategory)
+            List<Category> categories = product.getProductCategories()
+                    .stream().map(ProductCategory::getCategory)
                     .collect(Collectors.toList());
 
-            storeProductDto.get(product.getId()).setCategories(categoryMapper.DTO_LIST(courses));
+            storeProductDto.get(product.getId()).setCategories(categoryMapper.DTO_LIST(categories));
         }
 
 
@@ -70,6 +70,63 @@ public class ProductService implements IProductService {
         apiResponse.setMessage(result.getTotalElements() != 0 ?
                 messageSource.getMessage("success.get.all", null, LocaleContextHolder.getLocale())
                 : messageSource.getMessage("error.get.not.found", null, LocaleContextHolder.getLocale()));
+        return apiResponse;
+    }
+
+    @Override
+    public ApiResponse<Page<ProductDto>> open(String str, Pageable pageable) {
+        ApiResponse<Page<ProductDto>> apiResponse = new ApiResponse<>();
+        apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
+
+        Page<Product> products = productRepository.open(str, pageable);
+
+        Map<Long, ProductDto> storeProductDto = products.stream().collect(Collectors.toMap(
+                Product::getId,
+                productMapper::toDto
+        ));
+
+        for (Product product : products) {
+            List<Category> categories = product.getProductCategories()
+                    .stream().filter(pc -> pc.getStatus().equals("AVAILABLE")
+                            && pc.getCategory().getStatus().equals("AVAILABLE"))
+                    .map(ProductCategory::getCategory)
+                    .collect(Collectors.toList());
+
+            storeProductDto.get(product.getId()).setCategories(categoryMapper.DTO_LIST(categories));
+        }
+
+
+        List<ProductDto> productDtos = new ArrayList<>(storeProductDto.values());
+        Page<ProductDto> result = new PageImpl<>(productDtos, pageable, products.getTotalElements());
+
+        apiResponse.setResult(result);
+        apiResponse.setMessage(result.getTotalElements() != 0 ?
+                messageSource.getMessage("success.get.all", null, LocaleContextHolder.getLocale())
+                : messageSource.getMessage("error.get.not.found", null, LocaleContextHolder.getLocale()));
+        return apiResponse;
+    }
+
+    public ApiResponse<ProductDto> getById(Long id) {
+        ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
+        apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
+
+        if (!productRepository.existsById(id)) {
+            throw new AppException(ErrorCode.STUDENT_NOT_FOUND);
+        }
+
+        Product product = productRepository.getById(id);
+        List<Category> categories = product.getProductCategories()
+                .stream().filter(pc -> pc.getStatus().equals("AVAILABLE")
+                        && pc.getCategory().getStatus().equals("AVAILABLE"))
+                .map(ProductCategory::getCategory)
+                .collect(Collectors.toList());
+
+
+        ProductDto result = productMapper.toDto(product);
+        result.setCategories(categoryMapper.DTO_LIST(categories));
+
+        apiResponse.setMessage(messageSource.getMessage("success.get.all", null, LocaleContextHolder.getLocale()));
+        apiResponse.setResult(result);
         return apiResponse;
     }
 

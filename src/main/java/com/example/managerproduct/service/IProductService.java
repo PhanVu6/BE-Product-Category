@@ -10,6 +10,10 @@ import org.springframework.data.domain.Pageable;
 public interface IProductService {
     ApiResponse<Page<ProductDto>> getAllProduct(String str, Pageable pageable);
 
+    ApiResponse<Page<ProductDto>> open(String str, Pageable pageable);
+
+    ApiResponse<ProductDto> getById(Long id);
+
     ApiResponse<ProductDto> create(CreateProductDto productDto, String createBy);
 
     ApiResponse<ProductDto> update(UpdateProductDto productDto, String modifiedBy);

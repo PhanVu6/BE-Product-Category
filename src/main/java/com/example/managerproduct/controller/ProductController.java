@@ -27,6 +27,11 @@ public class ProductController {
         return productService.getAllProduct(search, pageable);
     }
 
+    @GetMapping("{id}")
+    public ApiResponse<ProductDto> getById(@PathVariable("id") Long id) {
+        return productService.getById(id);
+    }
+
     @PostMapping
     public ApiResponse<ProductDto> create(@RequestBody @Valid CreateProductDto productDto, String createBy) {
         createBy = "admin";
