@@ -11,9 +11,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("category")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 public class CategoryController {
     private final CategoryService categoryService;
 
@@ -23,6 +26,11 @@ public class CategoryController {
                                                         @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
         return categoryService.getAllCategory(name, pageable);
+    }
+
+    @GetMapping("open")
+    public ApiResponse<List<CategoryDto>> open(@RequestParam(value = "name", required = false) String name) {
+        return categoryService.open(name);
     }
 
     @PostMapping

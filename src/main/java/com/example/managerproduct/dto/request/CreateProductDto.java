@@ -38,5 +38,7 @@ public class CreateProductDto {
     @Pattern(regexp = "AVAILABLE|UNAVAILABLE", message = "error.statusInput")
     private String status;
 
+    private List<Long> categoryIds;
+
     private List<@Valid CategoryDto> categories;
 }

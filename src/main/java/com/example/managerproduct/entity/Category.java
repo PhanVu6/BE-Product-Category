@@ -42,6 +42,9 @@ public class Category {
     @Column(name = "category_code")
     private String category_code;
 
+    @Column(name = "image_link")
+    private String imageLink;
+
     @Column(name = "status", length = 20)
     private String status;
 

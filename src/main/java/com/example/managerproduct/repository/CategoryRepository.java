@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     @Query(value = "select distinct c " +
@@ -16,4 +18,12 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             "or c.category_code like %:str% ")
     Page<Category> getAll(@Param("str") String str,
                           Pageable pageable);
+
+    @Query(value = "select distinct c " +
+            "from Category c " +
+            "where (:str is null or c.name like %:str%) " +
+            "or c.category_code like %:str% ")
+    List<Category> open(@Param("str") String str);
+
+
 }

@@ -22,6 +22,8 @@ public class CreateCategoryDto {
     @Size(max = 50, min = 2, message = "error.invalidInput")
     private String category_code;
 
+    private String imageLink;
+
     @NotNull(message = "error.notBlank")
     @Pattern(regexp = "AVAILABLE|UNAVAILABLE", message = "error.statusInput")
     private String status;

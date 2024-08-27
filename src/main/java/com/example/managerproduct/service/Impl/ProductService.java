@@ -136,57 +136,57 @@ public class ProductService implements IProductService {
         ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
-        Product product = createProductMapper.toEntity(productDto);
-        product.setCreatedDate(new Date());
-        product.setCreatedBy(createBy);
-        product = productRepository.save(product);
+        Product createProduct = createProductMapper.toEntity(productDto);
+        createProduct.setCreatedDate(new Date());
+        createProduct.setCreatedBy(createBy);
+        createProduct = productRepository.save(createProduct);
 
-        // Kiểm tra nếu danh sách category không có thì chỉ trả về tạo mình product
-        if (productDto.getCategories() == null || productDto.getCategories().isEmpty()) {
-            ProductDto result = productMapper.toDto(product);
-            apiResponse.setResult(result);
-            apiResponse.setMessage(messageSource.getMessage("success.create", null, LocaleContextHolder.getLocale()));
-            return apiResponse;
-        }
+        Product product = createProduct;
 
-        // Lấy danh sách ID Category từ DTO
-        Set<Long> categoryIds = productDto.getCategories().stream()
-                .map(CategoryDto::getId)
+        // Tạo trực tiếp Category mới
+        List<CategoryDto> categoryDtos = productDto.getCategories().stream()
+                .map(categoryDto -> {
+                    // Lưu thời gian tạo mới
+                    categoryDto.setCreatedBy(createBy);
+                    categoryDto.setCreatedDate(new Date());
+                    return categoryDto;
+                }).collect(Collectors.toList());
+        List<Category> categories = CategoryMapper.INSTANCE.ENTITY_LIST(categoryDtos);
+        categories = categoryRepository.saveAll(categories);
+
+        // Lấy ra id các Categry mới
+        Set<Long> idCategoriesNew = categories.stream()
+                .map(Category::getId)
                 .collect(Collectors.toSet());
 
-        // Tìm tất cả các Category có ID từ danh sách
-        List<Category> existingCategoies = categoryRepository.findAllById(categoryIds);
+        // Thêm các Category id update và mới create
+        Set<Long> newCategoryIds = new HashSet<>(productDto.getCategoryIds());
+        newCategoryIds.addAll(idCategoriesNew);
 
-        // Tạo mới các Category không tồn tại
-        List<Category> newCategories = productDto.getCategories().stream()
-                .filter(categoryDto -> categoryDto.getId() == null || !categoryIds.contains(categoryDto.getId()))
-                .map(categoryDto -> {
-                    Category newCategory = categoryMapper.toEntity(categoryDto);
-                    newCategory.setCreatedBy(createBy);
-                    newCategory.setCreatedDate(new Date());
-                    return categoryRepository.save(newCategory);
-                }).collect(Collectors.toList());
 
-        // Kết hợp Category đã tồn tại và Category mới
-        List<Category> allCategories = new ArrayList<>(existingCategoies);
-        allCategories.addAll(newCategories);
+        // Lấy tất cả Categoy id để cập nhập trong StudentCourse
+        categories = categoryRepository.findAllById(newCategoryIds);
 
-        List<ProductCategory> productCategories = new ArrayList<>();
-        for (Category category : allCategories
-        ) {
-            ProductCategory productCategory = new ProductCategory();
-            productCategory.setProduct(product);
-            productCategory.setCategory(category);
-            productCategory.setStatus("AVAILABLE");
-            productCategory.setCreatedBy(createBy);
-            productCategory.setCreatedDate(new Date());
-            productCategories.add(productCategory);
-        }
+        Set<ProductCategory> newProductCategory = categories.stream()
+                .map(category -> {
+                    ProductCategory productCategory = new ProductCategory();
 
-        productCategoryRepository.saveAll(productCategories);
+                    productCategory.setCreatedDate(new Date());
+                    productCategory.setCreatedBy(createBy);
+                    productCategory.setProduct(product);
+                    productCategory.setCategory(category);
+                    productCategory.setStatus("AVAILABLE");
+                    return productCategory;
+                })
+                .collect(Collectors.toSet());
+
+
+        productCategoryRepository.saveAll(newProductCategory);
 
         ProductDto result = productMapper.toDto(product);
-        result.setCategories(categoryMapper.DTO_LIST(allCategories));
+        result.setCategories(categoryMapper.DTO_LIST(categories));
+
+        apiResponse.setResult(result);
 
         apiResponse.setResult(result);
         apiResponse.setMessage(messageSource.getMessage("success.create", null, LocaleContextHolder.getLocale()));
@@ -209,7 +209,14 @@ public class ProductService implements IProductService {
         product.setModifiedBy(modifiedBy);
 
         // Tạo trực tiếp Category mới
-        List<Category> categories = CategoryMapper.INSTANCE.ENTITY_LIST(productDto.getCategories());
+        List<CategoryDto> categoryDtos = productDto.getCategories().stream()
+                .map(categoryDto -> {
+                    // Lưu thời gian tạo mới
+                    categoryDto.setCreatedBy(modifiedBy);
+                    categoryDto.setCreatedDate(new Date());
+                    return categoryDto;
+                }).collect(Collectors.toList());
+        List<Category> categories = CategoryMapper.INSTANCE.ENTITY_LIST(categoryDtos);
         categories = categoryRepository.saveAll(categories);
 
         // Lấy ra id các Categry mới
@@ -266,6 +273,7 @@ public class ProductService implements IProductService {
         apiResponse.setMessage(messageSource.getMessage("success.update", null, LocaleContextHolder.getLocale()));
         return apiResponse;
     }
+
 
     @Transactional
     @Override

@@ -49,6 +49,21 @@ public class CategoryService implements ICategoryService {
         return apiResponse;
     }
 
+    @Override
+    public ApiResponse<List<CategoryDto>> open(String name) {
+        ApiResponse<List<CategoryDto>> apiResponse = new ApiResponse<>();
+        List<Category> products = categoryRepository.open(name);
+        List<CategoryDto> result = categoryMapper.DTO_LIST(products);
+
+
+        apiResponse.setResult(result);
+        apiResponse.setMessage(result != null ?
+                messageSource.getMessage("success.get.all", null, LocaleContextHolder.getLocale())
+                : messageSource.getMessage("error.get.not.found", null, LocaleContextHolder.getLocale()));
+        return apiResponse;
+    }
+
+
     @Transactional
     @Override
     public ApiResponse<CategoryDto> create(CreateCategoryDto categoryDto, String createBy) {
