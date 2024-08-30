@@ -4,13 +4,13 @@ import com.example.managerproduct.entity.ImageProduct;
 import com.example.managerproduct.repository.ImageProductRepository;
 import com.example.managerproduct.service.Impl.ImageProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Optional;
+import java.util.Set;
 
 @RestController
 public class ImageProductController {
@@ -20,24 +20,31 @@ public class ImageProductController {
     @Autowired
     private ImageProductRepository imageProductRepository;
 
-    @GetMapping("/images/{id}")
-    public ResponseEntity<byte[]> getImage(@PathVariable Long id) {
-        Optional<ImageProduct> imageOptional = imageProductRepository.findById(id);
+    @GetMapping
+    public ResponseEntity<Set<ImageProduct>> getAllImages() {
+        Set<ImageProduct> images = imageProductService.getAllImages();
+        return new ResponseEntity<>(images, HttpStatus.OK);
+    }
 
-        if (imageOptional.isPresent()) {
-            ImageProduct imageProduct = imageOptional.get();
-            return ResponseEntity.ok()
-                    .contentType(MediaType.IMAGE_JPEG)
-                    .body(imageProduct.getData());
+    // Lấy ảnh theo ID
+    @GetMapping("/{id}")
+    public ResponseEntity<byte[]> getImageById(@PathVariable Long id) {
+        ImageProduct image = imageProductService.getImageById(id);
+
+        if (image == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "image/jpeg"); // Hoặc image/png tùy loại file
+
+        return new ResponseEntity<>(image.getData(), headers, HttpStatus.OK);
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> uploadImage(@RequestParam("files") MultipartFile[] files) {
         try {
-            imageProductService.saveImage(file);
+            imageProductService.saveImage(files);
             return ResponseEntity.status(HttpStatus.OK).body("Image uploaded successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Image upload failed");

@@ -12,6 +12,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Date;
+
 @RestController
 @RequestMapping("product")
 @RequiredArgsConstructor
@@ -20,11 +22,14 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
-    public ApiResponse<Page<ProductDto>> getAllProduct(@RequestParam(value = "search", required = false) String search,
+    public ApiResponse<Page<ProductDto>> getAllProduct(@RequestParam(value = "name", required = false) String name,
+                                                       @RequestParam(value = "productCode", required = false) String productCode,
+                                                       @RequestParam(value = "startDate", required = false) Date startDate,
+                                                       @RequestParam(value = "endDate", required = false) Date endDate,
                                                        @RequestParam(value = "page", required = false, defaultValue = "0") int page,
                                                        @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return productService.getAllProduct(search, pageable);
+        return productService.getAllProduct(name, productCode, startDate, endDate, pageable);
     }
 
     @GetMapping("{id}")

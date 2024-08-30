@@ -43,11 +43,11 @@ public class ProductService implements IProductService {
     private final ProductCategoryRepository productCategoryRepository;
 
     @Override
-    public ApiResponse<Page<ProductDto>> getAllProduct(String str, Pageable pageable) {
+    public ApiResponse<Page<ProductDto>> getAllProduct(String name, String productCode, java.sql.Date startDate, java.sql.Date endDate, Pageable pageable) {
         ApiResponse<Page<ProductDto>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
-        Page<Product> products = productRepository.getAll(str, pageable);
+        Page<Product> products = productRepository.getAll(name, productCode, startDate, endDate, pageable);
 
         Map<Long, ProductDto> storeProductDto = products.stream().collect(Collectors.toMap(
                 Product::getId,

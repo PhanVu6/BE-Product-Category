@@ -8,7 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface IProductService {
-    ApiResponse<Page<ProductDto>> getAllProduct(String str, Pageable pageable);
+
+    ApiResponse<Page<ProductDto>> getAllProduct(String name, String productCode, java.sql.Date startDate, java.sql.Date endDate, Pageable pageable);
 
     ApiResponse<Page<ProductDto>> open(String str, Pageable pageable);
 

@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 public class ImageProductService {
@@ -14,10 +16,28 @@ public class ImageProductService {
     @Autowired
     private ImageProductRepository imageProductRepository;
 
-    public void saveImage(MultipartFile file) throws IOException {
-        ImageProduct imageProduct = new ImageProduct();
-        imageProduct.setName(file.getOriginalFilename());
-        imageProduct.setData(file.getBytes());
-        imageProductRepository.save(imageProduct);
+    // Lấy tất cả các ảnh
+    public Set<ImageProduct> getAllImages() {
+        return new HashSet<>(imageProductRepository.findAll());
+    }
+
+    // Lấy ảnh theo ID
+    public ImageProduct getImageById(Long id) {
+        return imageProductRepository.findById(id).orElse(null);
+    }
+
+    public void saveImage(MultipartFile[] files) throws IOException {
+        Set<ImageProduct> images = new HashSet<>();
+        for (MultipartFile file : files) {
+            try {
+                ImageProduct imageProduct = ImageProduct.builder()
+                        .name(file.getOriginalFilename())
+                        .data(file.getBytes())
+                        .build();
+                images.add(imageProduct);
+            } catch (IOException e) {
+                e.getMessage();
+            }
+        }
     }
 }

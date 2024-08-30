@@ -1,13 +1,15 @@
 package com.example.managerproduct.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "image_product")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ImageProduct {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,6 +19,10 @@ public class ImageProduct {
     private String name;
 
     @Lob
-    @Column(name = "data")
+    @Column(name = "data", columnDefinition = "LONGBLOB")
     private byte[] data;
+
+//    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+//    @JoinColumn(name = "product_id", nullable = false)
+//    private Product product;
 }
