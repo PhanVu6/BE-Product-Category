@@ -238,7 +238,7 @@ public class ProductService implements IProductService {
                 .collect(Collectors.toSet());
 
         // Lấy ra ProductCategory có quan hệ theo id Product
-        List<ProductCategory> existingPC = productCategoryRepository.findByStudentId(product.getId());
+        List<ProductCategory> existingPC = productCategoryRepository.findByProductId(product.getId());
         Map<Long, ProductCategory> productCategoryMap = existingPC.stream()
                 .collect(Collectors.toMap(pc -> pc.getCategory().getId(), pc -> pc));
 
@@ -304,11 +304,11 @@ public class ProductService implements IProductService {
         List<ImageProduct> imageProducts = new ArrayList<>();
         for (MultipartFile file : images) {
             if (!file.isEmpty()) {
-                String imageName = file.getOriginalFilename();
-                String imagePath = saveImageToFileSystem(file); // Implement this method to save image and return path
+                String imageName = saveImageToFileSystem(file); // Lưu ảnh và lấy tên tệp duy nhất
+                String imagePath = IMAGE_DIRECTORY + imageName; // Đường dẫn ảnh nếu cần thiết
 
                 ImageProduct imageProduct = new ImageProduct();
-                imageProduct.setImageName(imageName);
+                imageProduct.setImageName(imageName); // Lưu tên hình ảnh duy nhất
                 imageProduct.setImagePath(imagePath);
                 imageProduct.setProduct(createProduct);
 
@@ -384,8 +384,8 @@ public class ProductService implements IProductService {
             Path filePath = rootLocation.resolve(uniqueFileName);
             file.transferTo(filePath.toFile());
 
-            // Trả về đường dẫn tương đối
-            return filePath.toString(); // Có thể trả về đường dẫn tương đối hoặc URL tùy thuộc vào yêu cầu của bạn
+            // Trả về tên tệp duy nhất để lưu vào cơ sở dữ liệu
+            return uniqueFileName;
         } catch (IOException e) {
             throw new RuntimeException("Failed to store file " + file.getOriginalFilename(), e);
         }
@@ -406,14 +406,15 @@ public class ProductService implements IProductService {
         product.setModifiedDate(new Date());
         product.setModifiedBy(modifiedBy);
 
-        // Cập nhật hình ảnh mới
+        // Lưu các hình ảnh mới
         List<ImageProduct> existingImages = imageProductRepository.findByProductId(product.getId());
         Set<String> newImagePaths = new HashSet<>();
+        List<ImageProduct> newImageProducts = new ArrayList<>();
 
         for (MultipartFile file : images) {
             if (!file.isEmpty()) {
-                String imageName = file.getOriginalFilename();
-                String imagePath = saveImageToFileSystem(file); // Implement this method to save image and return path
+                String imageName = saveImageToFileSystem(file); // Lưu ảnh và lấy tên tệp duy nhất
+                String imagePath = IMAGE_DIRECTORY + imageName; // Đường dẫn ảnh nếu cần thiết
                 newImagePaths.add(imagePath);
 
                 ImageProduct imageProduct = existingImages.stream()
@@ -428,13 +429,17 @@ public class ProductService implements IProductService {
                     imageProduct.setProduct(product);
                 }
 
-                imageProduct.setImageName(imageName);
+                imageProduct.setImageName(imageName); // Lưu tên hình ảnh duy nhất
                 imageProduct.setImagePath(imagePath);
                 imageProduct.setModifiedDate(new Date());
                 imageProduct.setModifiedBy(modifiedBy);
-                imageProductRepository.save(imageProduct);
+
+                newImageProducts.add(imageProduct);
             }
         }
+
+        // Lưu tất cả các hình ảnh mới vào cơ sở dữ liệu
+        imageProductRepository.saveAll(newImageProducts);
 
         // Xóa hình ảnh cũ không còn được sử dụng
         List<ImageProduct> imagesToDelete = existingImages.stream()
@@ -460,7 +465,7 @@ public class ProductService implements IProductService {
                 .map(Category::getId)
                 .collect(Collectors.toSet());
 
-        List<ProductCategory> existingPC = productCategoryRepository.findByStudentId(product.getId());
+        List<ProductCategory> existingPC = productCategoryRepository.findByProductId(product.getId());
         Map<Long, ProductCategory> productCategoryMap = existingPC.stream()
                 .collect(Collectors.toMap(pc -> pc.getCategory().getId(), pc -> pc));
 
