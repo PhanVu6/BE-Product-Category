@@ -26,7 +26,7 @@ public class ProductDto {
     private Long quantity;
 
     private String imageLink;
-    
+
     private String status;
 
     private Date createdDate;
@@ -38,4 +38,6 @@ public class ProductDto {
     private String modifiedBy;
 
     private List<CategoryDto> categories;
+
+    private List<ImageProductDto> imageProducts;
 }

@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -35,12 +36,12 @@ public class CategoryService implements ICategoryService {
     private final CreateCategoryMapper createCategoryMapper = CreateCategoryMapper.INSTANCE;
 
     @Override
-    public ApiResponse<Page<CategoryDto>> getAllCategory(String name, Pageable pageable) {
+    public ApiResponse<Page<CategoryDto>> getAllCategory(String name, String categoryCode, LocalDate startDate, LocalDate endDate, Pageable pageable) {
         ApiResponse<Page<CategoryDto>> apiResponse = new ApiResponse<>();
-        Page<Category> products = categoryRepository.getAll(name, pageable);
-        List<CategoryDto> productDtos = categoryMapper.DTO_LIST(products.getContent());
+        Page<Category> category = categoryRepository.getAll(name, categoryCode, startDate, endDate, pageable);
+        List<CategoryDto> categoryDtos = categoryMapper.DTO_LIST(category.getContent());
 
-        Page<CategoryDto> result = new PageImpl<>(productDtos, pageable, products.getTotalElements());
+        Page<CategoryDto> result = new PageImpl<>(categoryDtos, pageable, category.getTotalElements());
 
         apiResponse.setResult(result);
         apiResponse.setMessage(result.getTotalElements() != 0 ?
@@ -52,8 +53,8 @@ public class CategoryService implements ICategoryService {
     @Override
     public ApiResponse<List<CategoryDto>> open(String name) {
         ApiResponse<List<CategoryDto>> apiResponse = new ApiResponse<>();
-        List<Category> products = categoryRepository.open(name);
-        List<CategoryDto> result = categoryMapper.DTO_LIST(products);
+        List<Category> category = categoryRepository.open(name);
+        List<CategoryDto> result = categoryMapper.DTO_LIST(category);
 
 
         apiResponse.setResult(result);
@@ -63,6 +64,19 @@ public class CategoryService implements ICategoryService {
         return apiResponse;
     }
 
+    public ApiResponse<CategoryDto> getById(Long id) {
+        ApiResponse<CategoryDto> apiResponse = new ApiResponse<>();
+        apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
+
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
+
+        CategoryDto result = categoryMapper.toDto(category);
+
+        apiResponse.setMessage(messageSource.getMessage("success.get.all", null, LocaleContextHolder.getLocale()));
+        apiResponse.setResult(result);
+        return apiResponse;
+    }
 
     @Transactional
     @Override

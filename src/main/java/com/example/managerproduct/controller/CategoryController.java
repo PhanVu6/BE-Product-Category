@@ -9,8 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -22,10 +24,20 @@ public class CategoryController {
 
     @GetMapping
     public ApiResponse<Page<CategoryDto>> getAllProduct(@RequestParam(value = "name", required = false) String name,
+                                                        @RequestParam(value = "categoryCode", required = false) String categoryCode,
+                                                        @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                        @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
                                                         @RequestParam(value = "page", required = false, defaultValue = "0") int page,
                                                         @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
+        categoryCode = (categoryCode == null || categoryCode.trim().isEmpty()) ? null : categoryCode;
+
         Pageable pageable = PageRequest.of(page, size);
-        return categoryService.getAllCategory(name, pageable);
+        return categoryService.getAllCategory(name, categoryCode, startDate, endDate, pageable);
+    }
+
+    @GetMapping("{id}")
+    public ApiResponse<CategoryDto> getById(@PathVariable("id") Long id) {
+        return categoryService.getById(id);
     }
 
     @GetMapping("open")
@@ -45,8 +57,8 @@ public class CategoryController {
         return categoryService.update(categoryDto, modifiedBy);
     }
 
-    @DeleteMapping
-    public ApiResponse<Boolean> delete(@RequestParam(value = "id", required = false) Long id) {
+    @DeleteMapping("{id}")
+    public ApiResponse<Boolean> delete(@PathVariable(value = "id", required = false) Long id) {
         return categoryService.delete(id);
     }
 }

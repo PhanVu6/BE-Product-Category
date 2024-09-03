@@ -118,11 +118,15 @@ public class ExcelExportService {
             createCell(headerRow, 9, "Modified Date", headerStyle);
             createCell(headerRow, 10, "Created By", headerStyle);
             createCell(headerRow, 11, "Modified By", headerStyle);
+            createCell(headerRow, 12, "Categories", headerStyle);
 
             // Điền dữ liệu vào bảng
             int rowIdx = 1;
             for (Product product : products) {
                 Row row = sheet.createRow(rowIdx++);
+                StringBuilder nameCategories = new StringBuilder();
+                product.getProductCategories().stream().forEach(productCategory -> nameCategories.append(productCategory.getCategory().getName()).append(", "));
+
                 createCell(row, 0, product.getId().toString(), borderedStyle);
                 createCell(row, 1, product.getName(), borderedStyle);
                 createCell(row, 2, product.getDescription() != null ? product.getDescription() : "", borderedStyle);
@@ -135,6 +139,7 @@ public class ExcelExportService {
                 createCell(row, 9, product.getModifiedDate() != null ? sdf.format(product.getModifiedDate()) : "", dateStyle);
                 createCell(row, 10, product.getCreatedBy() != null ? product.getCreatedBy() : "", borderedStyle);
                 createCell(row, 11, product.getModifiedBy() != null ? product.getModifiedBy() : "", borderedStyle);
+                createCell(row, 12, nameCategories.toString(), borderedStyle);
             }
 
             workbook.write(out);

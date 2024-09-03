@@ -8,13 +8,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Date;
+import java.time.LocalDate;
+import java.util.List;
 
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query(value = "select distinct p " +
             "from Product p " +
+            "left join fetch p.imageProducts i " +
             "left join fetch p.productCategories pc " +
             "left join fetch pc.category c " +
             "where (:name is null or p.name like %:name%) " +
@@ -24,9 +26,17 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "order by function('date', p.createdDate) ")
     Page<Product> getAll(@Param("name") String name,
                          @Param("productCode") String productCode,
-                         @Param("startDate") Date startDate,
-                         @Param("endDate") Date endDate,
+                         @Param("startDate") LocalDate startDate,
+                         @Param("endDate") LocalDate endDate,
                          Pageable pageable);
+
+    @Query(value = "select distinct p " +
+            "from Product p " +
+            "left join fetch p.imageProducts i " +
+            "left join fetch p.productCategories pc " +
+            "left join fetch pc.category c " +
+            "order by function('date', p.createdDate) ")
+    List<Product> getAll();
 
     @Query(value = "select distinct p " +
             "from Product p " +
@@ -39,6 +49,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                        Pageable pageable);
 
     @Query(value = "from Product p " +
+            "left join fetch p.imageProducts i " +
             "left join fetch p.productCategories pc " +
             "left join fetch pc.category c " +
             "where p.id = :id ")

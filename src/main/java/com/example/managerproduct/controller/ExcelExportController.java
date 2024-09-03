@@ -47,7 +47,7 @@ public class ExcelExportController {
 
     @GetMapping("/products/download")
     public ResponseEntity<byte[]> downloadProductsExcel() throws IOException {
-        List<Product> products = productRepository.findAll();
+        List<Product> products = productRepository.getAll();
 
         ByteArrayInputStream in = excelExportService.exportProductsToExcel(products);
 

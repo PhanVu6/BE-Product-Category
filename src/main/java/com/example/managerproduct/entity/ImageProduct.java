@@ -3,6 +3,8 @@ package com.example.managerproduct.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Date;
+
 @Entity
 @Getter
 @Setter
@@ -11,18 +13,33 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImageProduct {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "name")
-    private String name;
+    @Column(name = "image_name")
+    private String imageName;
 
-    @Lob
-    @Column(name = "data", columnDefinition = "LONGBLOB")
-    private byte[] data;
+    @Column(name = "image_path")
+    private String imagePath;
 
-//    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-//    @JoinColumn(name = "product_id", nullable = false)
-//    private Product product;
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_date")
+    private Date createdDate;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "modified_date")
+    private Date modifiedDate;
+
+    @Column(name = "created_by")
+    private String createdBy;
+
+    @Column(name = "modified_by")
+    private String modifiedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
 }

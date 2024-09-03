@@ -7,12 +7,15 @@ import com.example.managerproduct.dto.response.CategoryDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface ICategoryService {
-    ApiResponse<Page<CategoryDto>> getAllCategory(String name, Pageable pageable);
+    ApiResponse<Page<CategoryDto>> getAllCategory(String name, String categoryCode, LocalDate startDate, LocalDate endDate, Pageable pageable);
 
     ApiResponse<List<CategoryDto>> open(String name);
+
+    ApiResponse<CategoryDto> getById(Long id);
 
     ApiResponse<CategoryDto> create(CreateCategoryDto categoryDto, String createBy);
 

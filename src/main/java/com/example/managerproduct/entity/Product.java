@@ -55,6 +55,8 @@ public class Product {
     private String modifiedBy;
 
     @OneToMany(mappedBy = "product", cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE})
-//    @JsonBackReference
     private Set<ProductCategory> productCategories;
+
+    @OneToMany(mappedBy = "product", cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE})
+    private Set<ImageProduct> imageProducts;
 }
