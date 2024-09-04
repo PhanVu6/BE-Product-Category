@@ -15,6 +15,7 @@ import java.util.List;
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     @Query(value = "select distinct c " +
             "from Category c " +
+            "left join fetch c.imageCategories i " +
             "where (:name is null or c.name like %:name%) " +
             "and (:categoryCode is null or c.category_code like %:categoryCode%) " +
             "and (:startDate is null or function('date', c.createdDate) >= :startDate) " +
@@ -28,9 +29,13 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     @Query(value = "select distinct c " +
             "from Category c " +
+            "left join fetch c.imageCategories i " +
             "where (:str is null or c.name like %:str%) " +
             "or c.category_code like %:str% ")
     List<Category> open(@Param("str") String str);
 
-
+    @Query(value = "from Category c " +
+            "left join fetch c.imageCategories i " +
+            "where c.id = :id ")
+    Category getById(@Param("id") Long id);
 }

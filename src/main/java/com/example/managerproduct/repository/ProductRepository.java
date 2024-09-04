@@ -19,6 +19,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "left join fetch p.imageProducts i " +
             "left join fetch p.productCategories pc " +
             "left join fetch pc.category c " +
+            "left join fetch c.imageCategories ic " +
             "where (:name is null or p.name like %:name%) " +
             "and (:productCode is null or p.product_code like %:productCode%) " +
             "and (:startDate is null or function('date', p.createdDate) >= :startDate) " +
@@ -35,6 +36,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "left join fetch p.imageProducts i " +
             "left join fetch p.productCategories pc " +
             "left join fetch pc.category c " +
+            "left join fetch c.imageCategories ic " +
             "order by function('date', p.createdDate) ")
     List<Product> getAll();
 
@@ -42,6 +44,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "from Product p " +
             "left join fetch p.productCategories pc " +
             "left join fetch pc.category c " +
+            "left join fetch c.imageCategories ic " +
             "where p.status = 'AVAILABLE' " +
             "and (:str is null or p.name like %:str% or p.product_code like %:str%) " +
             "order by p.id")
@@ -52,6 +55,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "left join fetch p.imageProducts i " +
             "left join fetch p.productCategories pc " +
             "left join fetch pc.category c " +
+            "left join fetch c.imageCategories ic " +
             "where p.id = :id ")
     Product getById(@Param("id") Long id);
 }

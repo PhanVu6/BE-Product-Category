@@ -8,12 +8,11 @@ import java.util.Date;
 @Entity
 @Getter
 @Setter
-@Table(name = "image_product")
+@Table(name = "image_category")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ImageProduct {
-
+public class ImageCategory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -40,6 +39,6 @@ public class ImageProduct {
     private String modifiedBy;
 
     @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 }

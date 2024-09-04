@@ -134,9 +134,11 @@ public class ProductService implements IProductService {
                 .map(ProductCategory::getCategory)
                 .collect(Collectors.toList());
 
+        List<ImageProduct> imageProducts = product.getImageProducts().stream().toList();
 
         ProductDto result = productMapper.toDto(product);
         result.setCategories(categoryMapper.DTO_LIST(categories));
+        result.setImageProducts(imageProductMapper.DTO_LIST(imageProducts));
 
         apiResponse.setMessage(messageSource.getMessage("success.get.all", null, LocaleContextHolder.getLocale()));
         apiResponse.setResult(result);
@@ -312,6 +314,8 @@ public class ProductService implements IProductService {
                     imageProduct.setImageName(imageName); // Lưu tên hình ảnh duy nhất
                     imageProduct.setImagePath(imagePath);
                     imageProduct.setProduct(createProduct);
+                    imageProduct.setCreatedBy(createBy);
+                    imageProduct.setCreatedDate(new Date());
 
                     imageProducts.add(imageProduct);
                 }
@@ -337,7 +341,6 @@ public class ProductService implements IProductService {
         // Thêm các Category id update và mới create
         Set<Long> newCategoryIds = new HashSet<>(productDto.getCategoryIds());
         newCategoryIds.addAll(idCategoriesNew);
-
 
         // Lấy tất cả Category id để cập nhập trong StudentCourse
         categories = categoryRepository.findAllById(newCategoryIds);
@@ -416,7 +419,7 @@ public class ProductService implements IProductService {
             for (MultipartFile file : images) {
                 if (!file.isEmpty()) {
                     String imageName = saveImageToFileSystem(file); // Lưu ảnh và lấy tên tệp duy nhất
-                    String imagePath = IMAGE_DIRECTORY + imageName; // Đường dẫn ảnh nếu cần thiết
+                    String imagePath = IMAGE_DIRECTORY + "\\" + imageName; // Đường dẫn ảnh nếu cần thiết
                     newImagePaths.add(imagePath);
 
                     ImageProduct imageProduct = existingImages.stream()

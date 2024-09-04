@@ -6,7 +6,6 @@ import com.example.managerproduct.dto.response.ApiResponse;
 import com.example.managerproduct.dto.response.ProductDto;
 import com.example.managerproduct.service.Impl.ProductService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -55,24 +54,24 @@ public class ProductController {
     }
 
     @PostMapping("img")
-    public ApiResponse<ProductDto> create(@RequestParam("product") String productDto,
-                                          @RequestParam(value = "files", required = false) MultipartFile[] multipartFiles,
+    public ApiResponse<ProductDto> create(@RequestPart("product") @Valid CreateProductDto productDto,
+                                          @RequestPart(value = "files", required = false) MultipartFile[] multipartFiles,
                                           String createBy) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        CreateProductDto productDtoToJson = objectMapper.readValue(productDto, CreateProductDto.class);
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        @Valid CreateProductDto productDtoToJson = objectMapper.readValue(productDto, CreateProductDto.class);
         createBy = "admin";
-        return productService.create(productDtoToJson, multipartFiles, createBy);
+        return productService.create(productDto, multipartFiles, createBy);
     }
 
 
     @PutMapping("img")
-    public ApiResponse<ProductDto> update(@RequestParam("product") String productDto,
-                                          @RequestParam(value = "files", required = false) MultipartFile[] multipartFiles,
+    public ApiResponse<ProductDto> update(@RequestPart("product") @Valid UpdateProductDto productDto,
+                                          @RequestPart(value = "files", required = false) MultipartFile[] multipartFiles,
                                           String modifiedBy) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        UpdateProductDto productDtoToJson = objectMapper.readValue(productDto, UpdateProductDto.class);
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        UpdateProductDto productDtoToJson = objectMapper.readValue(productDto, UpdateProductDto.class);
         modifiedBy = "admin";
-        return productService.update(productDtoToJson, multipartFiles, modifiedBy);
+        return productService.update(productDto, multipartFiles, modifiedBy);
     }
 
     @DeleteMapping("{id}")

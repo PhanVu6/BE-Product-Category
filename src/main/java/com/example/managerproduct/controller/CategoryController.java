@@ -5,12 +5,15 @@ import com.example.managerproduct.dto.request.UpdateCategoryDto;
 import com.example.managerproduct.dto.response.ApiResponse;
 import com.example.managerproduct.dto.response.CategoryDto;
 import com.example.managerproduct.service.Impl.CategoryService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -55,6 +58,27 @@ public class CategoryController {
     public ApiResponse<CategoryDto> update(@RequestBody UpdateCategoryDto categoryDto, String modifiedBy) {
         modifiedBy = "admin";
         return categoryService.update(categoryDto, modifiedBy);
+    }
+
+    @PostMapping("img")
+    public ApiResponse<CategoryDto> create(@RequestParam("category") String categoryDto,
+                                           @RequestParam(value = "files", required = false) MultipartFile[] multipartFiles,
+                                           String createBy) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        CreateCategoryDto categoryDtoToJson = objectMapper.readValue(categoryDto, CreateCategoryDto.class);
+        createBy = "admin";
+        return categoryService.createCategory(categoryDtoToJson, multipartFiles, createBy);
+    }
+
+
+    @PutMapping("img")
+    public ApiResponse<CategoryDto> update(@RequestParam("category") String categoryDto,
+                                           @RequestParam(value = "files", required = false) MultipartFile[] multipartFiles,
+                                           String modifiedBy) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        UpdateCategoryDto categoryDtoToJson = objectMapper.readValue(categoryDto, UpdateCategoryDto.class);
+        modifiedBy = "admin";
+        return categoryService.updateCategoryImages(categoryDtoToJson, multipartFiles, modifiedBy);
     }
 
     @DeleteMapping("{id}")

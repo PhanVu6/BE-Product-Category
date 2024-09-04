@@ -1,6 +1,7 @@
 package com.example.managerproduct.dto.request;
 
 import com.example.managerproduct.dto.response.CategoryDto;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -16,6 +17,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CreateProductDto {
     @NotBlank(message = "error.notBlank")
     @Size(max = 50, min = 2, message = "error.invalidInput")
@@ -43,5 +45,5 @@ public class CreateProductDto {
 
     private List<@Valid CategoryDto> categories;
 
-    private List<MultipartFile> imageProducts;
+    private List<MultipartFile> imageCategories;
 }

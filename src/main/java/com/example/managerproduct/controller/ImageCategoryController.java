@@ -17,10 +17,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 @RestController
-@RequestMapping("image-product")
-public class ImageProductController {
+@RequestMapping("image-category")
+public class ImageCategoryController {
 
-    private final String IMAGE_DIRECTORY = "D:/MyProject/ImageProduct/";
+    private final String IMAGE_DIRECTORY = "D:/MyProject/ImageCategory/";
 
     @GetMapping("/api/images")
     public ResponseEntity<Resource> getImage(@RequestParam("imageName") String imageName) {

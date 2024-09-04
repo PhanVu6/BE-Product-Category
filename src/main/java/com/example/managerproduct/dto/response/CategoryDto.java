@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -42,4 +43,5 @@ public class CategoryDto {
     @Pattern(regexp = "AVAILABLE|UNAVAILABLE", message = "error.statusInput")
     private String status;
 
+    private List<ImageCategoryDto> imageCategories;
 }

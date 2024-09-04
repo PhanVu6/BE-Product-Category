@@ -11,7 +11,7 @@ import java.util.Date;
 @Setter
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ImageProductDto {
+public class ImageCategoryDto {
     private Long id;
 
     private String imageName;
