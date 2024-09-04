@@ -56,7 +56,7 @@ public class ProductController {
 
     @PostMapping("img")
     public ApiResponse<ProductDto> create(@RequestParam("product") String productDto,
-                                          @RequestParam("files") MultipartFile[] multipartFiles,
+                                          @RequestParam(value = "files", required = false) MultipartFile[] multipartFiles,
                                           String createBy) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         CreateProductDto productDtoToJson = objectMapper.readValue(productDto, CreateProductDto.class);
@@ -67,7 +67,7 @@ public class ProductController {
 
     @PutMapping("img")
     public ApiResponse<ProductDto> update(@RequestParam("product") String productDto,
-                                          @RequestParam("files") MultipartFile[] multipartFiles,
+                                          @RequestParam(value = "files", required = false) MultipartFile[] multipartFiles,
                                           String modifiedBy) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         UpdateProductDto productDtoToJson = objectMapper.readValue(productDto, UpdateProductDto.class);

@@ -302,21 +302,22 @@ public class ProductService implements IProductService {
 
         // Xử lý lưu ảnh
         List<ImageProduct> imageProducts = new ArrayList<>();
-        for (MultipartFile file : images) {
-            if (!file.isEmpty()) {
-                String imageName = saveImageToFileSystem(file); // Lưu ảnh và lấy tên tệp duy nhất
-                String imagePath = IMAGE_DIRECTORY + imageName; // Đường dẫn ảnh nếu cần thiết
+        if (images != null) {
+            for (MultipartFile file : images) {
+                if (!file.isEmpty()) {
+                    String imageName = saveImageToFileSystem(file); // Lưu ảnh và lấy tên tệp duy nhất
+                    String imagePath = IMAGE_DIRECTORY + imageName; // Đường dẫn ảnh nếu cần thiết
 
-                ImageProduct imageProduct = new ImageProduct();
-                imageProduct.setImageName(imageName); // Lưu tên hình ảnh duy nhất
-                imageProduct.setImagePath(imagePath);
-                imageProduct.setProduct(createProduct);
+                    ImageProduct imageProduct = new ImageProduct();
+                    imageProduct.setImageName(imageName); // Lưu tên hình ảnh duy nhất
+                    imageProduct.setImagePath(imagePath);
+                    imageProduct.setProduct(createProduct);
 
-                imageProducts.add(imageProduct);
+                    imageProducts.add(imageProduct);
+                }
             }
+            imageProductRepository.saveAll(imageProducts);
         }
-        imageProductRepository.saveAll(imageProducts);
-
         // Tạo trực tiếp Category mới
         List<CategoryDto> categoryDtos = productDto.getCategories().stream()
                 .map(categoryDto -> {
@@ -411,44 +412,46 @@ public class ProductService implements IProductService {
         Set<String> newImagePaths = new HashSet<>();
         List<ImageProduct> newImageProducts = new ArrayList<>();
 
-        for (MultipartFile file : images) {
-            if (!file.isEmpty()) {
-                String imageName = saveImageToFileSystem(file); // Lưu ảnh và lấy tên tệp duy nhất
-                String imagePath = IMAGE_DIRECTORY + imageName; // Đường dẫn ảnh nếu cần thiết
-                newImagePaths.add(imagePath);
+        if (images != null) {
+            for (MultipartFile file : images) {
+                if (!file.isEmpty()) {
+                    String imageName = saveImageToFileSystem(file); // Lưu ảnh và lấy tên tệp duy nhất
+                    String imagePath = IMAGE_DIRECTORY + imageName; // Đường dẫn ảnh nếu cần thiết
+                    newImagePaths.add(imagePath);
 
-                ImageProduct imageProduct = existingImages.stream()
-                        .filter(img -> img.getImageName().equals(imageName))
-                        .findFirst()
-                        .orElse(null);
+                    ImageProduct imageProduct = existingImages.stream()
+                            .filter(img -> img.getImageName().equals(imageName))
+                            .findFirst()
+                            .orElse(null);
 
-                if (imageProduct == null) {
-                    imageProduct = new ImageProduct();
-                    imageProduct.setCreatedDate(new Date());
-                    imageProduct.setCreatedBy(modifiedBy);
-                    imageProduct.setProduct(product);
+                    if (imageProduct == null) {
+                        imageProduct = new ImageProduct();
+                        imageProduct.setCreatedDate(new Date());
+                        imageProduct.setCreatedBy(modifiedBy);
+                        imageProduct.setProduct(product);
+                    }
+
+                    imageProduct.setImageName(imageName); // Lưu tên hình ảnh duy nhất
+                    imageProduct.setImagePath(imagePath);
+                    imageProduct.setModifiedDate(new Date());
+                    imageProduct.setModifiedBy(modifiedBy);
+
+                    newImageProducts.add(imageProduct);
                 }
-
-                imageProduct.setImageName(imageName); // Lưu tên hình ảnh duy nhất
-                imageProduct.setImagePath(imagePath);
-                imageProduct.setModifiedDate(new Date());
-                imageProduct.setModifiedBy(modifiedBy);
-
-                newImageProducts.add(imageProduct);
             }
-        }
 
-        // Lưu tất cả các hình ảnh mới vào cơ sở dữ liệu
-        imageProductRepository.saveAll(newImageProducts);
+            // Lưu tất cả các hình ảnh mới vào cơ sở dữ liệu
+            imageProductRepository.saveAll(newImageProducts);
 
-        // Xóa hình ảnh cũ không còn được sử dụng
-        List<ImageProduct> imagesToDelete = existingImages.stream()
-                .filter(img -> !newImagePaths.contains(img.getImagePath()))
-                .collect(Collectors.toList());
+            // Xóa hình ảnh cũ không còn được sử dụng
+            List<ImageProduct> imagesToDelete = existingImages.stream()
+                    .filter(img -> !newImagePaths.contains(img.getImagePath()))
+                    .collect(Collectors.toList());
 
-        if (!imagesToDelete.isEmpty()) {
-            imagesToDelete.forEach(img -> deleteImageFromFileSystem(img.getImagePath())); // Implement this method to delete image from file system
-            imageProductRepository.deleteAll(imagesToDelete);
+            if (!imagesToDelete.isEmpty()) {
+                imagesToDelete.forEach(img -> deleteImageFromFileSystem(img.getImagePath())); // Implement this method to delete image from file system
+                imageProductRepository.deleteAll(imagesToDelete);
+            }
         }
 
         // Tạo trực tiếp Category mới
