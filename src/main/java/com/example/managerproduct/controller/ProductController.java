@@ -28,6 +28,7 @@ public class ProductController {
 
     @GetMapping
     public ApiResponse<Page<ProductDto>> getAllProduct(@RequestParam(value = "name", required = false) String name,
+                                                       @RequestParam(value = "status", required = false) String status,
                                                        @RequestParam(value = "productCode", required = false) String productCode,
                                                        @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
                                                        @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
@@ -35,20 +36,7 @@ public class ProductController {
                                                        @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
         productCode = (productCode == null || productCode.trim().isEmpty()) ? null : productCode;
         Pageable pageable = PageRequest.of(page, size);
-        return productService.getAllProduct(name, productCode, startDate, endDate, pageable);
-    }
-
-    @GetMapping("test")
-    public Page<Object[]> get(@RequestParam(value = "name", required = false) String name,
-                              @RequestParam(value = "productCode", required = false) String productCode,
-                              @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-                              @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
-                              @RequestParam(value = "page", required = false, defaultValue = "0") int page,
-                              @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
-
-        productCode = (productCode == null || productCode.trim().isEmpty()) ? null : productCode;
-        Pageable pageable = PageRequest.of(page, size);
-        return productRepository.searchAll(name, productCode, startDate, endDate, pageable);
+        return productService.getAllProduct(name, status, productCode, startDate, endDate, pageable);
     }
 
     @GetMapping("{id}")
@@ -89,8 +77,13 @@ public class ProductController {
         return productService.update(productDto, multipartFiles, modifiedBy);
     }
 
-    @DeleteMapping("{id}")
+    @DeleteMapping("hard/{id}")
     public ApiResponse<Boolean> delete(@PathVariable(value = "id", required = false) Long id) {
         return productService.delete(id);
+    }
+
+    @DeleteMapping("{id}")
+    public ApiResponse<ProductDto> deleteMem(@PathVariable(value = "id", required = false) Long id) {
+        return productService.deleteMem(id);
     }
 }

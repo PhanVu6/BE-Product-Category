@@ -87,12 +87,12 @@ public class ProductService implements IProductService {
 //    }
 
     @Override
-    public ApiResponse<Page<ProductDto>> getAllProduct(String name, String productCode, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    public ApiResponse<Page<ProductDto>> getAllProduct(String name, String status, String productCode, LocalDate startDate, LocalDate endDate, Pageable pageable) {
         ApiResponse<Page<ProductDto>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
         // Truy vấn từ repository
-        Page<Object[]> products = productRepository.searchAll(name, productCode, startDate, endDate, pageable);
+        Page<Object[]> products = productRepository.searchAll(name, status, productCode, startDate, endDate, pageable);
 
         // Tạo danh sách ProductDto
         List<ProductDto> productDtos = products.stream().map(productObj -> {
@@ -577,6 +577,38 @@ public class ProductService implements IProductService {
             System.err.println("Error deleting file: " + imagePath);
             e.printStackTrace();
         }
+    }
+
+
+    @Transactional
+    @Override
+    public ApiResponse<ProductDto> deleteMem(Long id) {
+        Locale locale = LocaleContextHolder.getLocale();
+
+        ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_EXISTS));
+
+        if (product.getStatus().equals("AVAILABLE")) {
+            product.setStatus("UNAVAILABLE");
+            product.setModifiedBy("admin");
+            product.setModifiedDate(new Date());
+            productRepository.save(product);
+
+            List<ProductCategory> productCourses = productRepository.findProductCategoryByIdProduct(product.getId());
+            productCourses.forEach(sc -> sc.setStatus("0"));
+            productCourses.forEach(sc -> sc.setModifiedDate(new Date()));
+            productCourses.forEach(sc -> sc.setModifiedBy("admin"));
+
+            productCategoryRepository.saveAll(productCourses);
+
+            ProductDto productDto = productMapper.toDto(product);
+            apiResponse.setMessage(messageSource.getMessage("success.soft.delete", null, LocaleContextHolder.getLocale()));
+            apiResponse.setResult(productDto);
+        } else {
+            throw new AppException(ErrorCode.PRODUCT_EXISTS);
+        }
+        return apiResponse;
     }
 
     @Transactional

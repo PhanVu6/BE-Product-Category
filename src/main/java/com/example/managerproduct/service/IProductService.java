@@ -12,7 +12,7 @@ import java.time.LocalDate;
 
 public interface IProductService {
 
-    ApiResponse<Page<ProductDto>> getAllProduct(String name, String productCode, LocalDate startDate, LocalDate endDate, Pageable pageable);
+    ApiResponse<Page<ProductDto>> getAllProduct(String name, String status, String productCode, LocalDate startDate, LocalDate endDate, Pageable pageable);
 
     ApiResponse<Page<ProductDto>> open(String str, Pageable pageable);
 
@@ -26,6 +26,8 @@ public interface IProductService {
     ApiResponse<ProductDto> create(CreateProductDto productDto, MultipartFile[] images, String createBy);
 
     ApiResponse<ProductDto> update(UpdateProductDto productDto, MultipartFile[] images, String modifiedBy);
+
+    ApiResponse<ProductDto> deleteMem(Long id);
 
     ApiResponse<Boolean> delete(Long id);
 }

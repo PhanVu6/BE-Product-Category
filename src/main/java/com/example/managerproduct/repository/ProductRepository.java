@@ -1,6 +1,7 @@
 package com.example.managerproduct.repository;
 
 import com.example.managerproduct.entity.Product;
+import com.example.managerproduct.entity.ProductCategory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -41,7 +42,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "from product p " +
             "left join productcategory pc on pc.product_id = p.id " +
             "left join category c on c.id = pc.category_id " +
-            "where (:name is null or p.name like concat('%', :name, '%')) " +
+            "where p.status = :status " +
+            "and (:name is null or p.name like concat('%', :name, '%')) " +
             "and (:productCode is null or p.product_code like concat('%', :productCode, '%')) " +
             "and (:startDate is null or p.created_date >= :startDate) " +
             "and (:endDate is null or p.created_date <= :endDate) " +
@@ -51,12 +53,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                     "from product p " +
                     "left join productcategory pc on pc.product_id = p.id " +
                     "left join category c on c.id = pc.category_id " +
-                    "where (:name is null or p.name like concat('%', :name, '%')) " +
+                    "where p.status = :status " +
+                    "and (:name is null or p.name like concat('%', :name, '%')) " +
                     "and (:productCode is null or p.product_code like concat('%', :productCode, '%')) " +
                     "and (:startDate is null or p.created_date >= :startDate) " +
                     "and (:endDate is null or p.created_date <= :endDate) ",
             nativeQuery = true)
     Page<Object[]> searchAll(@Param("name") String name,
+                             @Param("status") String status,
                              @Param("productCode") String productCode,
                              @Param("startDate") LocalDate startDate,
                              @Param("endDate") LocalDate endDate,
@@ -90,4 +94,24 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "left join fetch c.imageCategories ic " +
             "where p.id = :id ")
     Product getById(@Param("id") Long id);
+
+
+    @Query(value = "SELECT p.id AS id, p.name AS productName, p.product_code AS productCode, " +
+            "GROUP_CONCAT(c.name ORDER BY c.name SEPARATOR ', ') AS categoryName, " +
+            "pc.status AS status, p.created_date AS createDate, p.modified_date AS modifiedDate, " +
+            "p.quantity AS quantity, p.description AS description, p.price AS price " +
+            "FROM product p " +
+            "JOIN product_category pc ON p.id = pc.product_id " +
+            "JOIN category c ON pc.category_id = c.id " +
+            "GROUP BY p.id, p.name, p.product_code, pc.status, p.created_date, p.modified_date, " +
+            "p.quantity, p.description, p.price " +
+            "ORDER BY p.created_date DESC", // Thêm điều kiện sắp xếp theo ngày tạo
+            countQuery = "SELECT COUNT(DISTINCT p.id) FROM product p " +
+                    "JOIN product_category pc ON p.id = pc.product_id " +
+                    "JOIN category c ON pc.category_id = c.id",
+            nativeQuery = true)
+    Page<Object[]> findProductDetailsWithCategories(Pageable pageable);
+
+    @Query("SELECT sc FROM ProductCategory sc WHERE sc.product.id = :productId")
+    List<ProductCategory> findProductCategoryByIdProduct(@Param("productId") Long productId);
 }

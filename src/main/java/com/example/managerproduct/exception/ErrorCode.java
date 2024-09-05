@@ -14,7 +14,8 @@ public enum ErrorCode {
     STUDENT_EMAIL_EXISTS(1006, "error.studentEmailExists", HttpStatus.BAD_REQUEST),
     STUDENT_DISCONECT(1007, "error.studentDisconnect", HttpStatus.BAD_REQUEST),
     ALREADY_DELETED(1008, "error.alreadyDeleted", HttpStatus.BAD_REQUEST),
-    STUDENT_EXISTS_COURSE(1009, "error.existsCourse", HttpStatus.BAD_REQUEST);
+    STUDENT_EXISTS_COURSE(1009, "error.existsCourse", HttpStatus.BAD_REQUEST),
+    PRODUCT_EXISTS(1004, "error.product.exists", HttpStatus.BAD_REQUEST);
 
     private Integer code;
     private String message;
