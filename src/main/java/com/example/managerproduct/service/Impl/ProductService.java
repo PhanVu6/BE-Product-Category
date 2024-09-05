@@ -55,36 +55,80 @@ public class ProductService implements IProductService {
     private final String IMAGE_DIRECTORY = "D:\\MyProject\\ImageProduct"; // Thay đổi đường dẫn nếu cần
     private final Path rootLocation = Paths.get(IMAGE_DIRECTORY);
 
+//    @Override
+//    public ApiResponse<Page<ProductDto>> getAllProduct(String name, String productCode, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+//        ApiResponse<Page<ProductDto>> apiResponse = new ApiResponse<>();
+//        apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
+//
+//        Page<Product> products = productRepository.getAll(name, productCode, startDate, endDate, pageable);
+//
+//        Map<Long, ProductDto> storeProductDto = products.stream().collect(Collectors.toMap(
+//                Product::getId,
+//                productMapper::toDto
+//        ));
+//
+//        for (Product product : products) {
+//            List<Category> categories = product.getProductCategories()
+//                    .stream().map(ProductCategory::getCategory)
+//                    .collect(Collectors.toList());
+//
+//            storeProductDto.get(product.getId()).setCategories(categoryMapper.DTO_LIST(categories));
+//        }
+//
+//
+//        List<ProductDto> productDtos = new ArrayList<>(storeProductDto.values());
+//        Page<ProductDto> result = new PageImpl<>(productDtos, pageable, products.getTotalElements());
+//
+//        apiResponse.setResult(result);
+//        apiResponse.setMessage(result.getTotalElements() != 0 ?
+//                messageSource.getMessage("success.get.all", null, LocaleContextHolder.getLocale())
+//                : messageSource.getMessage("error.get.not.found", null, LocaleContextHolder.getLocale()));
+//        return apiResponse;
+//    }
+
     @Override
     public ApiResponse<Page<ProductDto>> getAllProduct(String name, String productCode, LocalDate startDate, LocalDate endDate, Pageable pageable) {
         ApiResponse<Page<ProductDto>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
-        Page<Product> products = productRepository.getAll(name, productCode, startDate, endDate, pageable);
+        // Truy vấn từ repository
+        Page<Object[]> products = productRepository.searchAll(name, productCode, startDate, endDate, pageable);
 
-        Map<Long, ProductDto> storeProductDto = products.stream().collect(Collectors.toMap(
-                Product::getId,
-                productMapper::toDto
-        ));
+        // Tạo danh sách ProductDto
+        List<ProductDto> productDtos = products.stream().map(productObj -> {
+            Object[] product = (Object[]) productObj;
 
-        for (Product product : products) {
-            List<Category> categories = product.getProductCategories()
-                    .stream().map(ProductCategory::getCategory)
-                    .collect(Collectors.toList());
+            // Map từng trường của mảng Object[] sang ProductDto
+            ProductDto dto = new ProductDto();
+            dto.setPrice((Double) product[0]); // Giá
+            dto.setStatus((String) product[1]); // Trạng thái
+            dto.setCreatedDate((Date) product[2]); // Ngày tạo
+            dto.setId((Long) product[3]); // ID
+            dto.setModifiedDate(product[4] != null ? (Date) product[4] : null); // Ngày chỉnh sửa
+            dto.setQuantity((Long) product[5]); // Số lượng
+            dto.setCreatedBy((String) product[6]); // Người tạo
+            dto.setDescription((String) product[7]); // Mô tả
+            dto.setModifiedBy(product[8] != null ? (String) product[8] : null); // Người chỉnh sửa
+            dto.setName((String) product[9]); // Tên sản phẩm
+            dto.setProduct_code((String) product[10]); // Mã sản phẩm
+            dto.setImageLink((String) product[11]); // Ảnh sản phẩm
+            dto.setNameCategory(product[12] != null ? (String) product[12] : null); // Danh mục sản phẩm
 
-            storeProductDto.get(product.getId()).setCategories(categoryMapper.DTO_LIST(categories));
-        }
+            return dto;
+        }).collect(Collectors.toList());
 
-
-        List<ProductDto> productDtos = new ArrayList<>(storeProductDto.values());
+        // Chuyển đổi thành Page
         Page<ProductDto> result = new PageImpl<>(productDtos, pageable, products.getTotalElements());
 
+        // Cập nhật message và result vào apiResponse
         apiResponse.setResult(result);
         apiResponse.setMessage(result.getTotalElements() != 0 ?
                 messageSource.getMessage("success.get.all", null, LocaleContextHolder.getLocale())
                 : messageSource.getMessage("error.get.not.found", null, LocaleContextHolder.getLocale()));
+
         return apiResponse;
     }
+
 
     @Override
     public ApiResponse<Page<ProductDto>> open(String str, Pageable pageable) {

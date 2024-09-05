@@ -24,12 +24,44 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "and (:productCode is null or p.product_code like %:productCode%) " +
             "and (:startDate is null or function('date', p.createdDate) >= :startDate) " +
             "and (:endDate is null or function('date', p.createdDate) <= :endDate) " +
-            "order by function('date', p.createdDate) ")
+            "order by function('date', p.createdDate) ",
+            countQuery = "select count(distinct p) " +
+                    "from Product p " +
+                    "where (:name is null or p.name like %:name%) " +
+                    "and (:productCode is null or p.product_code like %:productCode%) " +
+                    "and (:startDate is null or function('date', p.createdDate) >= :startDate) " +
+                    "and (:endDate is null or function('date', p.createdDate) <= :endDate)")
     Page<Product> getAll(@Param("name") String name,
                          @Param("productCode") String productCode,
                          @Param("startDate") LocalDate startDate,
                          @Param("endDate") LocalDate endDate,
                          Pageable pageable);
+
+    @Query(value = "select p.*, GROUP_CONCAT(DISTINCT c.name SEPARATOR ', ') AS category " +
+            "from product p " +
+            "left join productcategory pc on pc.product_id = p.id " +
+            "left join category c on c.id = pc.category_id " +
+            "where (:name is null or p.name like concat('%', :name, '%')) " +
+            "and (:productCode is null or p.product_code like concat('%', :productCode, '%')) " +
+            "and (:startDate is null or p.created_date >= :startDate) " +
+            "and (:endDate is null or p.created_date <= :endDate) " +
+            "group by p.id " +
+            "order by p.created_date",
+            countQuery = "select count(distinct p.id) " +
+                    "from product p " +
+                    "left join productcategory pc on pc.product_id = p.id " +
+                    "left join category c on c.id = pc.category_id " +
+                    "where (:name is null or p.name like concat('%', :name, '%')) " +
+                    "and (:productCode is null or p.product_code like concat('%', :productCode, '%')) " +
+                    "and (:startDate is null or p.created_date >= :startDate) " +
+                    "and (:endDate is null or p.created_date <= :endDate) ",
+            nativeQuery = true)
+    Page<Object[]> searchAll(@Param("name") String name,
+                             @Param("productCode") String productCode,
+                             @Param("startDate") LocalDate startDate,
+                             @Param("endDate") LocalDate endDate,
+                             Pageable pageable);
+
 
     @Query(value = "select distinct p " +
             "from Product p " +

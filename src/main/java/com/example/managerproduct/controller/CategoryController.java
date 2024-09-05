@@ -6,7 +6,7 @@ import com.example.managerproduct.dto.response.ApiResponse;
 import com.example.managerproduct.dto.response.CategoryDto;
 import com.example.managerproduct.service.Impl.CategoryService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -61,24 +61,24 @@ public class CategoryController {
     }
 
     @PostMapping("img")
-    public ApiResponse<CategoryDto> create(@RequestParam("category") String categoryDto,
-                                           @RequestParam(value = "files", required = false) MultipartFile[] multipartFiles,
+    public ApiResponse<CategoryDto> create(@RequestPart("category") @Valid CreateCategoryDto categoryDto,
+                                           @RequestPart(value = "files", required = false) MultipartFile[] multipartFiles,
                                            String createBy) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        CreateCategoryDto categoryDtoToJson = objectMapper.readValue(categoryDto, CreateCategoryDto.class);
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        CreateCategoryDto categoryDtoToJson = objectMapper.readValue(categoryDto, CreateCategoryDto.class);
         createBy = "admin";
-        return categoryService.createCategory(categoryDtoToJson, multipartFiles, createBy);
+        return categoryService.createCategory(categoryDto, multipartFiles, createBy);
     }
 
 
     @PutMapping("img")
-    public ApiResponse<CategoryDto> update(@RequestParam("category") String categoryDto,
-                                           @RequestParam(value = "files", required = false) MultipartFile[] multipartFiles,
+    public ApiResponse<CategoryDto> update(@RequestPart("category") @Valid UpdateCategoryDto categoryDto,
+                                           @RequestPart(value = "files", required = false) MultipartFile[] multipartFiles,
                                            String modifiedBy) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        UpdateCategoryDto categoryDtoToJson = objectMapper.readValue(categoryDto, UpdateCategoryDto.class);
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        UpdateCategoryDto categoryDtoToJson = objectMapper.readValue(categoryDto, UpdateCategoryDto.class);
         modifiedBy = "admin";
-        return categoryService.updateCategoryImages(categoryDtoToJson, multipartFiles, modifiedBy);
+        return categoryService.updateCategoryImages(categoryDto, multipartFiles, modifiedBy);
     }
 
     @DeleteMapping("{id}")

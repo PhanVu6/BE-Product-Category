@@ -40,4 +40,5 @@ public class ProductDto {
     private List<CategoryDto> categories;
 
     private List<ImageProductDto> imageProducts;
+    private String nameCategory;
 }

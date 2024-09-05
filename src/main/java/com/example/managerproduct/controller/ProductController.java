@@ -4,6 +4,7 @@ import com.example.managerproduct.dto.request.CreateProductDto;
 import com.example.managerproduct.dto.request.UpdateProductDto;
 import com.example.managerproduct.dto.response.ApiResponse;
 import com.example.managerproduct.dto.response.ProductDto;
+import com.example.managerproduct.repository.ProductRepository;
 import com.example.managerproduct.service.Impl.ProductService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
@@ -23,6 +24,7 @@ import java.time.LocalDate;
 @CrossOrigin(origins = "http://localhost:5173")
 public class ProductController {
     private final ProductService productService;
+    private final ProductRepository productRepository;
 
     @GetMapping
     public ApiResponse<Page<ProductDto>> getAllProduct(@RequestParam(value = "name", required = false) String name,
@@ -34,6 +36,19 @@ public class ProductController {
         productCode = (productCode == null || productCode.trim().isEmpty()) ? null : productCode;
         Pageable pageable = PageRequest.of(page, size);
         return productService.getAllProduct(name, productCode, startDate, endDate, pageable);
+    }
+
+    @GetMapping("test")
+    public Page<Object[]> get(@RequestParam(value = "name", required = false) String name,
+                              @RequestParam(value = "productCode", required = false) String productCode,
+                              @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                              @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+                              @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+                              @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
+
+        productCode = (productCode == null || productCode.trim().isEmpty()) ? null : productCode;
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.searchAll(name, productCode, startDate, endDate, pageable);
     }
 
     @GetMapping("{id}")
