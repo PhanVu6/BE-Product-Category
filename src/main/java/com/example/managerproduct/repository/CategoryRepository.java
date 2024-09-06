@@ -17,7 +17,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             "from Category c " +
             "left join fetch c.imageCategories i " +
             "where (:name is null or c.name like %:name%) " +
-            "and (:categoryCode is null or c.category_code like %:categoryCode%) " +
+            "and (:categoryCode is null or c.categoryCode like %:categoryCode%) " +
             "and (:startDate is null or function('date', c.createdDate) >= :startDate) " +
             "and (:endDate is null or function('date', c.createdDate) <= :endDate) " +
             "order by function('date', c.createdDate) ")
@@ -31,11 +31,17 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             "from Category c " +
             "left join fetch c.imageCategories i " +
             "where (:str is null or c.name like %:str%) " +
-            "or c.category_code like %:str% ")
+            "or c.categoryCode like %:str% ")
     List<Category> open(@Param("str") String str);
 
     @Query(value = "from Category c " +
             "left join fetch c.imageCategories i " +
             "where c.id = :id ")
     Category getById(@Param("id") Long id);
+
+    // Kiểm tra xem categoryCode có tồn tại hay không
+    boolean existsByCategoryCode(String categoryCode);
+
+    // Nếu cần kiểm tra theo categoryId để tránh kiểm tra chính danh mục đó khi cập nhật
+    boolean existsByCategoryCodeAndIdNot(String categoryCode, Long id);
 }

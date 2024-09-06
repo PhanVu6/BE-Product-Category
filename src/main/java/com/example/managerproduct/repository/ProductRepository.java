@@ -1,7 +1,6 @@
 package com.example.managerproduct.repository;
 
 import com.example.managerproduct.entity.Product;
-import com.example.managerproduct.entity.ProductCategory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,14 +21,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "left join fetch pc.category c " +
             "left join fetch c.imageCategories ic " +
             "where (:name is null or p.name like %:name%) " +
-            "and (:productCode is null or p.product_code like %:productCode%) " +
+            "and (:productCode is null or p.productCode like %:productCode%) " +
             "and (:startDate is null or function('date', p.createdDate) >= :startDate) " +
             "and (:endDate is null or function('date', p.createdDate) <= :endDate) " +
             "order by function('date', p.createdDate) ",
             countQuery = "select count(distinct p) " +
                     "from Product p " +
                     "where (:name is null or p.name like %:name%) " +
-                    "and (:productCode is null or p.product_code like %:productCode%) " +
+                    "and (:productCode is null or p.productCode like %:productCode%) " +
                     "and (:startDate is null or function('date', p.createdDate) >= :startDate) " +
                     "and (:endDate is null or function('date', p.createdDate) <= :endDate)")
     Page<Product> getAll(@Param("name") String name,
@@ -82,7 +81,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "left join fetch pc.category c " +
             "left join fetch c.imageCategories ic " +
             "where p.status = 'AVAILABLE' " +
-            "and (:str is null or p.name like %:str% or p.product_code like %:str%) " +
+            "and (:str is null or p.name like %:str% or p.productCode like %:str%) " +
             "order by p.id")
     Page<Product> open(@Param("str") String str,
                        Pageable pageable);
@@ -101,7 +100,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "pc.status AS status, p.created_date AS createDate, p.modified_date AS modifiedDate, " +
             "p.quantity AS quantity, p.description AS description, p.price AS price " +
             "FROM product p " +
-            "JOIN product_category pc ON p.id = pc.product_id " +
+            "JOIN productcategory pc ON p.id = pc.product_id " +
             "JOIN category c ON pc.category_id = c.id " +
             "GROUP BY p.id, p.name, p.product_code, pc.status, p.created_date, p.modified_date, " +
             "p.quantity, p.description, p.price " +
@@ -112,6 +111,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             nativeQuery = true)
     Page<Object[]> findProductDetailsWithCategories(Pageable pageable);
 
-    @Query("SELECT sc FROM ProductCategory sc WHERE sc.product.id = :productId")
-    List<ProductCategory> findProductCategoryByIdProduct(@Param("productId") Long productId);
+
+    // Kiểm tra xem productCode có tồn tại hay không
+    boolean existsByProductCode(String productCode);
+
+    // Nếu cần kiểm tra theo productId để tránh kiểm tra chính sản phẩm đó khi cập nhật
+    boolean existsByProductCodeAndIdNot(String productCode, Long id);
 }

@@ -36,7 +36,7 @@ public class UpdateProductDto {
 
     @NotBlank(message = "error.notBlank")
     @Size(max = 20, message = "error.invalidInput")
-    private String product_code;
+    private String productCode;
 
     @NotNull(message = "error.notBlank")
     private Long quantity;

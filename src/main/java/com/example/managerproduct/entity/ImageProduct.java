@@ -25,6 +25,9 @@ public class ImageProduct {
     @Column(name = "image_path")
     private String imagePath;
 
+    @Column(name = "status")
+    private String status;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_date")
     private Date createdDate;

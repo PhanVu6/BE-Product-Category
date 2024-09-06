@@ -99,6 +99,11 @@ public class CategoryService implements ICategoryService {
         ApiResponse<CategoryDto> apiResponse = new ApiResponse<>();
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
+        // Kiểm tra xem categoryCode đã tồn tại chưa
+        if (categoryRepository.existsByCategoryCode(categoryDto.getCategoryCode())) {
+            throw new AppException(ErrorCode.CATEGORY_CODE_ALREADY_EXISTS);  // Tùy biến exception của bạn
+        }
+
         Category category = createCategoryMapper.toEntity(categoryDto);
         category.setCreatedDate(new Date());
         category.setCreatedBy(createBy);
@@ -164,8 +169,13 @@ public class CategoryService implements ICategoryService {
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
         Long id = categoryDto.getId();
+        // Kiểm tra xem categoryCode đã tồn tại với danh mục khác chưa
+        if (categoryRepository.existsByCategoryCodeAndIdNot(categoryDto.getCategoryCode(), id)) {
+            throw new AppException(ErrorCode.CATEGORY_CODE_ALREADY_EXISTS);  // Tùy biến exception của bạn
+        }
+
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
 
         updateCategoryMapper.updateCategoryFromDto(categoryDto, category);
         category.setId(id);
@@ -177,31 +187,38 @@ public class CategoryService implements ICategoryService {
         Set<String> newImagePaths = new HashSet<>();
         List<ImageCategory> newImageCategories = new ArrayList<>();
 
-        if (images != null) {
+        if (images == null || images.length == 0) {
+            // Xóa hết các hình ảnh cũ nếu không có hình ảnh mới
+            if (!existingImages.isEmpty()) {
+                existingImages.forEach(img -> deleteImageFromFileSystem(img.getImagePath())); // Xóa ảnh từ hệ thống tệp
+                imageCategoryRepository.deleteAll(existingImages);
+            }
+        } else {
+            // Xử lý các hình ảnh mới
             for (MultipartFile file : images) {
                 if (!file.isEmpty()) {
                     String imageName = saveImageToFileSystem(file); // Lưu ảnh và lấy tên tệp duy nhất
                     String imagePath = IMAGE_DIRECTORY + "\\" + imageName; // Đường dẫn ảnh nếu cần thiết
                     newImagePaths.add(imagePath);
 
-                    ImageCategory imagecategory = existingImages.stream()
+                    ImageCategory imageCategory = existingImages.stream()
                             .filter(img -> img.getImageName().equals(imageName))
                             .findFirst()
                             .orElse(null);
 
-                    if (imagecategory == null) {
-                        imagecategory = new ImageCategory();
-                        imagecategory.setCreatedDate(new Date());
-                        imagecategory.setCreatedBy(modifiedBy);
-                        imagecategory.setCategory(category);
+                    if (imageCategory == null) {
+                        imageCategory = new ImageCategory();
+                        imageCategory.setCreatedDate(new Date());
+                        imageCategory.setCreatedBy(modifiedBy);
+                        imageCategory.setCategory(category);
                     }
 
-                    imagecategory.setImageName(imageName); // Lưu tên hình ảnh duy nhất
-                    imagecategory.setImagePath(imagePath);
-                    imagecategory.setModifiedDate(new Date());
-                    imagecategory.setModifiedBy(modifiedBy);
+                    imageCategory.setImageName(imageName); // Lưu tên hình ảnh duy nhất
+                    imageCategory.setImagePath(imagePath);
+                    imageCategory.setModifiedDate(new Date());
+                    imageCategory.setModifiedBy(modifiedBy);
 
-                    newImageCategories.add(imagecategory);
+                    newImageCategories.add(imageCategory);
                 }
             }
 
@@ -214,10 +231,13 @@ public class CategoryService implements ICategoryService {
                     .collect(Collectors.toList());
 
             if (!imagesToDelete.isEmpty()) {
-                imagesToDelete.forEach(img -> deleteImageFromFileSystem(img.getImagePath())); // Implement this method to delete image from file system
-                imageCategoryRepository.deleteAll(imagesToDelete);
+                imagesToDelete.forEach(img -> deleteImageFromFileSystem(img.getImagePath())); // Xóa ảnh từ hệ thống tệp
+
+                category.getImageCategories().clear();
+                category.getImageCategories().addAll(newImageCategories);
             }
         }
+
         CategoryDto result = categoryMapper.toDto(category);
         result.setImageCategories(imageCategoryMapper.DTO_LIST(newImageCategories));
 
@@ -239,6 +259,7 @@ public class CategoryService implements ICategoryService {
             // Log lỗi hoặc ném ngoại lệ tùy vào yêu cầu xử lý lỗi của bạn
             System.err.println("Error deleting file: " + imagePath);
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -248,6 +269,11 @@ public class CategoryService implements ICategoryService {
     public ApiResponse<CategoryDto> create(CreateCategoryDto categoryDto, String createBy) {
         ApiResponse<CategoryDto> apiResponse = new ApiResponse<>();
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
+
+        // Kiểm tra xem categoryCode đã tồn tại chưa
+        if (categoryRepository.existsByCategoryCode(categoryDto.getCategoryCode())) {
+            throw new AppException(ErrorCode.CATEGORY_CODE_ALREADY_EXISTS);  // Tùy biến exception của bạn
+        }
 
         Category category = createCategoryMapper.toEntity(categoryDto);
         category.setCreatedDate(new Date());
@@ -268,6 +294,11 @@ public class CategoryService implements ICategoryService {
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
         Long id = categoryDto.getId();
+        // Kiểm tra xem categoryCode đã tồn tại với danh mục khác chưa
+        if (categoryRepository.existsByCategoryCodeAndIdNot(categoryDto.getCategoryCode(), id)) {
+            throw new AppException(ErrorCode.CATEGORY_CODE_ALREADY_EXISTS);  // Tùy biến exception của bạn
+        }
+
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 

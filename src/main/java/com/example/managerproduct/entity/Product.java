@@ -29,7 +29,7 @@ public class Product {
     private Double price;
 
     @Column(name = "product_code")
-    private String product_code;
+    private String productCode;
 
     @Column(name = "quantity")
     private Long quantity;

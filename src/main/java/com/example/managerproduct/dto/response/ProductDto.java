@@ -21,7 +21,7 @@ public class ProductDto {
 
     private Double price;
 
-    private String product_code;
+    private String productCode;
 
     private Long quantity;
 

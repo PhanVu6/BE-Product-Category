@@ -1,6 +1,8 @@
 package com.example.managerproduct.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,6 +25,10 @@ public class ImageProductDto {
     private Date modifiedDate;
 
     private String createdBy;
+
+    @NotNull(message = "error.notBlank")
+    @Pattern(regexp = "AVAILABLE|UNAVAILABLE", message = "error.statusInput")
+    private String status;
 
     private String modifiedBy;
 }

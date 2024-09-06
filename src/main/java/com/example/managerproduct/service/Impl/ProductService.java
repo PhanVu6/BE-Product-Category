@@ -110,7 +110,7 @@ public class ProductService implements IProductService {
             dto.setDescription((String) product[7]); // Mô tả
             dto.setModifiedBy(product[8] != null ? (String) product[8] : null); // Người chỉnh sửa
             dto.setName((String) product[9]); // Tên sản phẩm
-            dto.setProduct_code((String) product[10]); // Mã sản phẩm
+            dto.setProductCode((String) product[10]); // Mã sản phẩm
             dto.setImageLink((String) product[11]); // Ảnh sản phẩm
             dto.setNameCategory(product[12] != null ? (String) product[12] : null); // Danh mục sản phẩm
 
@@ -195,6 +195,10 @@ public class ProductService implements IProductService {
         ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
+        if (productRepository.existsByProductCode(productDto.getProductCode())) {
+            throw new AppException(ErrorCode.PRODUCT_CODE_ALREADY_EXISTS);  // Tùy biến exception của bạn
+        }
+
         Product createProduct = createProductMapper.toEntity(productDto);
         createProduct.setCreatedDate(new Date());
         createProduct.setCreatedBy(createBy);
@@ -259,6 +263,11 @@ public class ProductService implements IProductService {
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
         Long id = productDto.getId();
+        // Kiểm tra xem productCode đã tồn tại với sản phẩm khác chưa
+        if (productRepository.existsByProductCodeAndIdNot(productDto.getProductCode(), id)) {
+            throw new AppException(ErrorCode.PRODUCT_CODE_ALREADY_EXISTS);  // Tùy biến exception của bạn
+        }
+
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 
@@ -338,6 +347,10 @@ public class ProductService implements IProductService {
     public ApiResponse<ProductDto> create(CreateProductDto productDto, MultipartFile[] images, String createBy) {
         ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
+
+        if (productRepository.existsByProductCode(productDto.getProductCode())) {
+            throw new AppException(ErrorCode.PRODUCT_CODE_ALREADY_EXISTS);  // Tùy biến exception của bạn
+        }
 
         Product createProduct = createProductMapper.toEntity(productDto);
         createProduct.setCreatedDate(new Date());
@@ -446,6 +459,11 @@ public class ProductService implements IProductService {
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
         Long id = productDto.getId();
+        // Kiểm tra xem productCode đã tồn tại với sản phẩm khác chưa
+        if (productRepository.existsByProductCodeAndIdNot(productDto.getProductCode(), id)) {
+            throw new AppException(ErrorCode.PRODUCT_CODE_ALREADY_EXISTS);  // Tùy biến exception của bạn
+        }
+
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 
@@ -459,7 +477,15 @@ public class ProductService implements IProductService {
         Set<String> newImagePaths = new HashSet<>();
         List<ImageProduct> newImageProducts = new ArrayList<>();
 
-        if (images != null) {
+        // Nếu không có ảnh mới, xóa hết ảnh cũ
+        if (images == null || images.length == 0) {
+            // Xóa hình ảnh cũ không còn được sử dụng
+            if (!existingImages.isEmpty()) {
+                existingImages.forEach(img -> deleteImageFromFileSystem(img.getImagePath())); // Xóa ảnh từ hệ thống tệp
+                imageProductRepository.deleteAll(existingImages);
+            }
+        } else {
+            // Xử lý các hình ảnh mới
             for (MultipartFile file : images) {
                 if (!file.isEmpty()) {
                     String imageName = saveImageToFileSystem(file); // Lưu ảnh và lấy tên tệp duy nhất
@@ -496,8 +522,9 @@ public class ProductService implements IProductService {
                     .collect(Collectors.toList());
 
             if (!imagesToDelete.isEmpty()) {
-                imagesToDelete.forEach(img -> deleteImageFromFileSystem(img.getImagePath())); // Implement this method to delete image from file system
-                imageProductRepository.deleteAll(imagesToDelete);
+                imagesToDelete.forEach(img -> deleteImageFromFileSystem(img.getImagePath())); // Xóa ảnh từ hệ thống tệp
+                product.getImageProducts().clear();
+                product.getImageProducts().addAll(newImageProducts);
             }
         }
 
@@ -555,7 +582,7 @@ public class ProductService implements IProductService {
         result.setCategories(categoryMapper.DTO_LIST(categories));
 
         // Set updated images to the result
-        result.setImageProducts(imageProductMapper.DTO_LIST(imageProductRepository.findByProductId(product.getId())));
+        result.setImageProducts(imageProductMapper.DTO_LIST(newImageProducts));
 
         apiResponse.setResult(result);
         apiResponse.setMessage(messageSource.getMessage("success.update", null, LocaleContextHolder.getLocale()));
@@ -576,6 +603,7 @@ public class ProductService implements IProductService {
             // Log lỗi hoặc ném ngoại lệ tùy vào yêu cầu xử lý lỗi của bạn
             System.err.println("Error deleting file: " + imagePath);
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -595,12 +623,12 @@ public class ProductService implements IProductService {
             product.setModifiedDate(new Date());
             productRepository.save(product);
 
-            List<ProductCategory> productCourses = productRepository.findProductCategoryByIdProduct(product.getId());
-            productCourses.forEach(sc -> sc.setStatus("0"));
-            productCourses.forEach(sc -> sc.setModifiedDate(new Date()));
-            productCourses.forEach(sc -> sc.setModifiedBy("admin"));
-
-            productCategoryRepository.saveAll(productCourses);
+//            List<ProductCategory> productCourses = productRepository.findProductCategoryByIdProduct(product.getId());
+//            productCourses.forEach(sc -> sc.setStatus("0"));
+//            productCourses.forEach(sc -> sc.setModifiedDate(new Date()));
+//            productCourses.forEach(sc -> sc.setModifiedBy("admin"));
+//
+//            productCategoryRepository.saveAll(productCourses);
 
             ProductDto productDto = productMapper.toDto(product);
             apiResponse.setMessage(messageSource.getMessage("success.soft.delete", null, LocaleContextHolder.getLocale()));

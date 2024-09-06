@@ -86,7 +86,7 @@ public class ExcelExportService {
                 createCell(row, 4, category.getCreatedBy() != null ? category.getCreatedBy() : "", borderedStyle);
                 createCell(row, 5, category.getModifiedBy() != null ? category.getModifiedBy() : "", borderedStyle);
                 createCell(row, 6, category.getDescription() != null ? category.getDescription() : "", borderedStyle);
-                createCell(row, 7, category.getCategory_code() != null ? category.getCategory_code() : "", borderedStyle);
+                createCell(row, 7, category.getCategoryCode() != null ? category.getCategoryCode() : "", borderedStyle);
                 createCell(row, 8, category.getImageLink() != null ? category.getImageLink() : "", borderedStyle);
                 createCell(row, 9, category.getStatus() != null ? category.getStatus() : "", borderedStyle);
             }
@@ -131,7 +131,7 @@ public class ExcelExportService {
                 createCell(row, 1, product.getName(), borderedStyle);
                 createCell(row, 2, product.getDescription() != null ? product.getDescription() : "", borderedStyle);
                 createCell(row, 3, product.getPrice() != null ? product.getPrice() : 0, borderedStyle);
-                createCell(row, 4, product.getProduct_code() != null ? product.getProduct_code() : "", borderedStyle);
+                createCell(row, 4, product.getProductCode() != null ? product.getProductCode() : "", borderedStyle);
                 createCell(row, 5, product.getQuantity() != null ? product.getQuantity() : 0, borderedStyle);
                 createCell(row, 6, product.getImageLink() != null ? product.getImageLink() : "", borderedStyle);
                 createCell(row, 7, product.getStatus() != null ? product.getStatus() : "", borderedStyle);

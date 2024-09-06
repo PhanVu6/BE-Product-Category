@@ -25,7 +25,7 @@ public class CreateCategoryDto {
 
     @NotBlank(message = "error.notBlank")
     @Size(max = 50, min = 2, message = "error.invalidInput")
-    private String category_code;
+    private String categoryCode;
 
     private String imageLink;
 

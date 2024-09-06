@@ -16,9 +16,9 @@ public interface ProductCategoryRepository extends JpaRepository<ProductCategory
             value = "from ProductCategory pc " +
                     "join fetch pc.product p " +
                     "join fetch pc.category c " +
-                    "where p.id = :studentId"
+                    "where p.id = :productId"
     )
-    List<ProductCategory> findByProductId(@Param("studentId") Long studentId);
+    List<ProductCategory> findByProductId(@Param("productId") Long studentId);
 
     @Modifying
     @Query("UPDATE ProductCategory pc SET pc.status = :status WHERE pc.product.id = :productId AND pc.category.id IN :categoryIds")

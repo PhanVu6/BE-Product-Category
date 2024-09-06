@@ -40,7 +40,7 @@ public class Category {
     private String description;
 
     @Column(name = "category_code")
-    private String category_code;
+    private String categoryCode;
 
     @Column(name = "image_link")
     private String imageLink;
@@ -52,6 +52,6 @@ public class Category {
 //    @JsonBackReference
     private Set<ProductCategory> productCategories;
 
-    @OneToMany(mappedBy = "category", cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE})
+    @OneToMany(mappedBy = "category", cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     private Set<ImageCategory> imageCategories;
 }
