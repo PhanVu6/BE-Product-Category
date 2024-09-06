@@ -215,6 +215,7 @@ public class CategoryService implements ICategoryService {
 
                     imageCategory.setImageName(imageName); // Lưu tên hình ảnh duy nhất
                     imageCategory.setImagePath(imagePath);
+                    imageCategory.setStatus("AVAILABLE");
                     imageCategory.setModifiedDate(new Date());
                     imageCategory.setModifiedBy(modifiedBy);
 

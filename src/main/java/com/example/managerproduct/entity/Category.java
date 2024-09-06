@@ -45,7 +45,7 @@ public class Category {
     @Column(name = "image_link")
     private String imageLink;
 
-    @Column(name = "status", length = 20)
+    @Column(name = "status")
     private String status;
 
     @OneToMany(mappedBy = "category", cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE})

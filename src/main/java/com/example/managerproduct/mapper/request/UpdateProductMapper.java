@@ -17,5 +17,6 @@ public interface UpdateProductMapper {
     @Mapping(target = "createdBy", ignore = true)
     Product toEntity(UpdateProductDto productDto);
 
+    @Mapping(target = "imageProducts", ignore = true)
     void updateProductFromDto(UpdateProductDto dto, @MappingTarget Product product);
 }

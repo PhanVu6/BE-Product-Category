@@ -37,7 +37,7 @@ public class Product {
     @Column(name = "image_link")
     private String imageLink;
 
-    @Column(name = "status", length = 20)
+    @Column(name = "status")
     private String status;
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -57,6 +57,6 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE})
     private Set<ProductCategory> productCategories;
 
-    @OneToMany(mappedBy = "product", cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE})
+    @OneToMany(mappedBy = "product", cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     private Set<ImageProduct> imageProducts;
 }

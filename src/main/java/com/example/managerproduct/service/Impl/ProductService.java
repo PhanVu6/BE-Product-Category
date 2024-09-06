@@ -473,7 +473,7 @@ public class ProductService implements IProductService {
         product.setModifiedBy(modifiedBy);
 
         // Lưu các hình ảnh mới
-        List<ImageProduct> existingImages = imageProductRepository.findByProductId(product.getId());
+        List<ImageProduct> existingImages = imageProductRepository.findByProductId(id);
         Set<String> newImagePaths = new HashSet<>();
         List<ImageProduct> newImageProducts = new ArrayList<>();
 
@@ -506,6 +506,7 @@ public class ProductService implements IProductService {
 
                     imageProduct.setImageName(imageName); // Lưu tên hình ảnh duy nhất
                     imageProduct.setImagePath(imagePath);
+                    imageProduct.setStatus("AVAILABLE");
                     imageProduct.setModifiedDate(new Date());
                     imageProduct.setModifiedBy(modifiedBy);
 
