@@ -24,7 +24,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "and (:productCode is null or p.productCode like %:productCode%) " +
             "and (:startDate is null or function('date', p.createdDate) >= :startDate) " +
             "and (:endDate is null or function('date', p.createdDate) <= :endDate) " +
-            "order by function('date', p.createdDate) ",
+            "order by p.createdDate desc ",
             countQuery = "select count(distinct p) " +
                     "from Product p " +
                     "where (:name is null or p.name like %:name%) " +
@@ -72,7 +72,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "left join fetch p.productCategories pc " +
             "left join fetch pc.category c " +
             "left join fetch c.imageCategories ic " +
-            "order by function('date', p.createdDate) ")
+            "order by p.createdDate desc ")
     List<Product> getAll();
 
     @Query(value = "select distinct p " +

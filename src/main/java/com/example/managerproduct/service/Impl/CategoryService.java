@@ -301,7 +301,7 @@ public class CategoryService implements ICategoryService {
         }
 
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
         updateCategoryMapper.updateCategoryFromDto(categoryDto, category);
         category.setId(id);
@@ -323,7 +323,7 @@ public class CategoryService implements ICategoryService {
 
 
         if (!categoryRepository.existsById(id)) {
-            throw new AppException(ErrorCode.STUDENT_NOT_FOUND);
+            throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
         }
 
         categoryRepository.deleteById(id);

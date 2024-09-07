@@ -27,9 +27,9 @@ public class GlobalExceptionHandler {
     @Autowired
     private MessageSource messageSource;
 
-    // Xử lý AppException
+    // Xử lý cho các exception do Application
     @ExceptionHandler(AppException.class)
-    public ResponseEntity<ApiResponse<String>> handleAppException(AppException exception, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<?>> handleAppException(AppException exception, HttpServletRequest request) {
         Locale locale = LocaleContextHolder.getLocale();
         ErrorCode errorCode = exception.getErrorCode();
 
@@ -38,7 +38,9 @@ public class GlobalExceptionHandler {
         apiResponse.setMessage(messageSource.getMessage(errorCode.getMessage(), null, locale));
         apiResponse.setResult(exception.getMessage());
 
-        return ResponseEntity.status(errorCode.getStatus()).body(apiResponse);
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(apiResponse);
     }
 
     // Xử lý MethodArgumentNotValidException bắt trường lỗi
@@ -55,7 +57,7 @@ public class GlobalExceptionHandler {
 
         ApiResponse<Map<String, String>> apiResponse = new ApiResponse<>();
         apiResponse.setCode(HttpStatus.BAD_REQUEST.value());
-        apiResponse.setMessage(messageSource.getMessage("error.invalidInput", null, locale));
+        apiResponse.setMessage(errors.values().stream().findFirst().get().toString());
         apiResponse.setResult(errors);
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);

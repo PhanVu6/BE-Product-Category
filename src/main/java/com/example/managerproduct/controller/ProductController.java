@@ -17,6 +17,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("product")
@@ -70,11 +74,26 @@ public class ProductController {
     @PutMapping("img")
     public ApiResponse<ProductDto> update(@RequestPart("product") @Valid UpdateProductDto productDto,
                                           @RequestPart(value = "files", required = false) MultipartFile[] multipartFiles,
+                                          @RequestParam("idImg") String idImg,
                                           String modifiedBy) throws JsonProcessingException {
 //        ObjectMapper objectMapper = new ObjectMapper();
 //        UpdateProductDto productDtoToJson = objectMapper.readValue(productDto, UpdateProductDto.class);
+
         modifiedBy = "admin";
-        return productService.update(productDto, multipartFiles, modifiedBy);
+        
+        // Xử lý chuỗi idImg để loại bỏ dấu [] nếu có
+        if (idImg != null) {
+            idImg = idImg.replaceAll("[\\[\\]]", ""); // Loại bỏ dấu ngoặc vuông
+        }
+
+        // Kiểm tra nếu idImg là null hoặc chuỗi rỗng
+        List<Long> imageIdsToDelete = (idImg == null || idImg.trim().isEmpty())
+                ? Collections.emptyList()
+                : Arrays.stream(idImg.split(","))
+                .map(Long::parseLong)
+                .collect(Collectors.toList());
+
+        return productService.update(productDto, multipartFiles, imageIdsToDelete, modifiedBy);
     }
 
     @DeleteMapping("hard/{id}")

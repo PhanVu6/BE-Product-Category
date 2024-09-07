@@ -20,7 +20,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CreateProductDto {
     @NotBlank(message = "error.notBlank")
-    @Size(max = 50, min = 2, message = "error.invalidInput")
+    @Size(max = 50, min = 2, message = "error.invalidInput.name")
     private String name;
 
     private String description;
@@ -29,7 +29,7 @@ public class CreateProductDto {
     private Double price;
 
     @NotBlank(message = "error.notBlank")
-    @Size(max = 20, message = "error.invalidInput")
+    @Size(min = 3, max = 20, message = "error.invalidInput")
     private String productCode;
 
     @NotNull(message = "error.notBlank")

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
@@ -20,7 +21,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             "and (:categoryCode is null or c.categoryCode like %:categoryCode%) " +
             "and (:startDate is null or function('date', c.createdDate) >= :startDate) " +
             "and (:endDate is null or function('date', c.createdDate) <= :endDate) " +
-            "order by function('date', c.createdDate) ")
+            "order by c.createdDate desc ")
     Page<Category> getAll(@Param("name") String name,
                           @Param("categoryCode") String categoryCode,
                           @Param("startDate") LocalDate startDate,
@@ -44,4 +45,9 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     // Nếu cần kiểm tra theo categoryId để tránh kiểm tra chính danh mục đó khi cập nhật
     boolean existsByCategoryCodeAndIdNot(String categoryCode, Long id);
+
+    // Phương thức để kiểm tra tồn tại của danh sách categoryCode
+    @Query("SELECT c.categoryCode FROM Category c WHERE c.categoryCode IN :categoryCodes ")
+    List<String> findExistingCategoryCodes(@Param("categoryCodes") Set<String> categoryCodes);
+
 }

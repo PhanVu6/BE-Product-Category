@@ -168,7 +168,7 @@ public class ProductService implements IProductService {
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
         if (!productRepository.existsById(id)) {
-            throw new AppException(ErrorCode.STUDENT_NOT_FOUND);
+            throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
         }
 
         Product product = productRepository.getById(id);
@@ -269,7 +269,7 @@ public class ProductService implements IProductService {
         }
 
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
         updateProductMapper.updateProductFromDto(productDto, product);
         product.setId(id);
@@ -452,9 +452,39 @@ public class ProductService implements IProductService {
         }
     }
 
+    private List<ImageProduct> saveImageToDB(MultipartFile[] images, Product product, String modifiedBy) {
+
+        List<ImageProduct> imagesToCreate = new ArrayList<>();
+        // yêu cầu tải ảnh mới với MultipartFile
+        for (MultipartFile file : images) {
+            if (!file.isEmpty()) {
+                String imageName = saveImageToFileSystem(file);  // Lưu ảnh và lấy tên tệp duy nhất
+                String imagePath = IMAGE_DIRECTORY + "\\" + imageName;
+
+                ImageProduct newImageProduct = new ImageProduct();
+                newImageProduct.setImageName(imageName);
+                newImageProduct.setImagePath(imagePath);
+                newImageProduct.setProduct(product);
+                newImageProduct.setCreatedDate(new Date());
+                newImageProduct.setCreatedBy(modifiedBy);
+                newImageProduct.setModifiedDate(new Date());
+                newImageProduct.setModifiedBy(modifiedBy);
+                newImageProduct.setStatus("AVAILABLE");
+
+                imagesToCreate.add(newImageProduct);
+            }
+        }
+
+
+        // Lưu các ảnh đã được cập nhật hoặc mới vào cơ sở dữ liệu 0 có câu nào
+        return imageProductRepository.saveAll(imagesToCreate);
+    }
+
+    ;
+
     @Transactional
     @Override
-    public ApiResponse<ProductDto> update(UpdateProductDto productDto, MultipartFile[] images, String modifiedBy) {
+    public ApiResponse<ProductDto> update(UpdateProductDto productDto, MultipartFile[] images, List<Long> imageIdsToDelete, String modifiedBy) {
         ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
@@ -463,73 +493,93 @@ public class ProductService implements IProductService {
         if (productRepository.existsByProductCodeAndIdNot(productDto.getProductCode(), id)) {
             throw new AppException(ErrorCode.PRODUCT_CODE_ALREADY_EXISTS);  // Tùy biến exception của bạn
         }
-
+//        select 2 lần
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
         updateProductMapper.updateProductFromDto(productDto, product);
         product.setId(id);
         product.setModifiedDate(new Date());
         product.setModifiedBy(modifiedBy);
 
-        // Lưu các hình ảnh mới
-        List<ImageProduct> existingImages = imageProductRepository.findByProductId(id);
-        Set<String> newImagePaths = new HashSet<>();
-        List<ImageProduct> newImageProducts = new ArrayList<>();
+        // Xử lý Category nếu có
+        if (productDto.getCategories() != null && !productDto.getCategories().isEmpty()) {
+            Set<String> categoryCodes = productDto.getCategories().stream()
+                    .map(CategoryDto::getCategoryCode)
+                    .collect(Collectors.toSet());
 
-        // Nếu không có ảnh mới, xóa hết ảnh cũ
-        if (images == null || images.length == 0) {
-            // Xóa hình ảnh cũ không còn được sử dụng
-            if (!existingImages.isEmpty()) {
-                existingImages.forEach(img -> deleteImageFromFileSystem(img.getImagePath())); // Xóa ảnh từ hệ thống tệp
-                imageProductRepository.deleteAll(existingImages);
-            }
-        } else {
-            // Xử lý các hình ảnh mới
-            for (MultipartFile file : images) {
-                if (!file.isEmpty()) {
-                    String imageName = saveImageToFileSystem(file); // Lưu ảnh và lấy tên tệp duy nhất
-                    String imagePath = IMAGE_DIRECTORY + "\\" + imageName; // Đường dẫn ảnh nếu cần thiết
-                    newImagePaths.add(imagePath);
+            List<String> existingCodes = categoryRepository.findExistingCategoryCodes(categoryCodes);
 
-                    ImageProduct imageProduct = existingImages.stream()
-                            .filter(img -> img.getImageName().equals(imageName))
-                            .findFirst()
-                            .orElse(null);
-
-                    if (imageProduct == null) {
-                        imageProduct = new ImageProduct();
-                        imageProduct.setCreatedDate(new Date());
-                        imageProduct.setCreatedBy(modifiedBy);
-                        imageProduct.setProduct(product);
-                    }
-
-                    imageProduct.setImageName(imageName); // Lưu tên hình ảnh duy nhất
-                    imageProduct.setImagePath(imagePath);
-                    imageProduct.setStatus("AVAILABLE");
-                    imageProduct.setModifiedDate(new Date());
-                    imageProduct.setModifiedBy(modifiedBy);
-
-                    newImageProducts.add(imageProduct);
-                }
-            }
-
-            // Lưu tất cả các hình ảnh mới vào cơ sở dữ liệu
-            imageProductRepository.saveAll(newImageProducts);
-
-            // Xóa hình ảnh cũ không còn được sử dụng
-            List<ImageProduct> imagesToDelete = existingImages.stream()
-                    .filter(img -> !newImagePaths.contains(img.getImagePath()))
-                    .collect(Collectors.toList());
-
-            if (!imagesToDelete.isEmpty()) {
-                imagesToDelete.forEach(img -> deleteImageFromFileSystem(img.getImagePath())); // Xóa ảnh từ hệ thống tệp
-                product.getImageProducts().clear();
-                product.getImageProducts().addAll(newImageProducts);
+            // Báo categoryCode đã tồn tại
+            if (!existingCodes.isEmpty()) {
+                throw new AppException(ErrorCode.CATEGORY_CODE_ALREADY_EXISTS);
             }
         }
 
-        // Tạo trực tiếp Category mới
+        // Xử lý ảnh sản phẩm
+        List<ImageProduct> existingImages = imageProductRepository.findByProductId(id);
+        Map<Long, ImageProduct> existingImagesMap = existingImages.stream()
+                .collect(Collectors.toMap(ImageProduct::getId, img -> img));
+
+        Set<Long> newImageIds = new HashSet<>(imageIdsToDelete); // Danh sách ID ảnh mới được cung cấp
+        Set<Long> existingImageIds = existingImagesMap.keySet(); // Danh sách ID ảnh hiện tại
+
+        // Các ID ảnh cần được set trạng thái "UNAVAILABLE" vì không còn được sử dụng
+        Set<Long> idsToSetUnavailable = existingImageIds.stream()
+                .filter(existingId -> !newImageIds.contains(existingId))
+                .collect(Collectors.toSet());
+
+        if (!idsToSetUnavailable.isEmpty()) {
+            List<ImageProduct> imagesToSetUnavailable = existingImages.stream()
+                    .filter(img -> idsToSetUnavailable.contains(img.getId()))
+                    .collect(Collectors.toList());
+
+            imagesToSetUnavailable.forEach(img -> {
+                img.setStatus("UNAVAILABLE");
+                img.setModifiedDate(new Date());
+                img.setModifiedBy(modifiedBy);
+            });
+
+            imageProductRepository.saveAll(imagesToSetUnavailable);
+        }
+
+        // Xử lý các ảnh được cung cấp, set trạng thái "AVAILABLE"
+        List<ImageProduct> imagesToUpdate = new ArrayList<>();
+        for (Long imageId : newImageIds) {
+            ImageProduct imageProduct = existingImagesMap.get(imageId);
+
+            if (imageProduct != null) {
+                imageProduct.setStatus("AVAILABLE");
+                imageProduct.setModifiedDate(new Date());
+                imageProduct.setModifiedBy(modifiedBy);
+                imagesToUpdate.add(imageProduct);
+
+                // Nếu ảnh không tồn tại, tạo mới (nếu yêu cầu tải ảnh mới với MultipartFile)
+                for (MultipartFile file : images) {
+                    if (!file.isEmpty()) {
+                        String imageName = saveImageToFileSystem(file);  // Lưu ảnh và lấy tên tệp duy nhất
+                        String imagePath = IMAGE_DIRECTORY + "\\" + imageName;
+
+                        ImageProduct newImageProduct = new ImageProduct();
+                        newImageProduct.setImageName(imageName);
+                        newImageProduct.setImagePath(imagePath);
+                        newImageProduct.setProduct(product);
+                        newImageProduct.setCreatedDate(new Date());
+                        newImageProduct.setCreatedBy(modifiedBy);
+                        newImageProduct.setModifiedDate(new Date());
+                        newImageProduct.setModifiedBy(modifiedBy);
+                        newImageProduct.setStatus("AVAILABLE");
+
+                        imagesToUpdate.add(newImageProduct);
+                    }
+                }
+            }
+        }
+
+        // Lưu các ảnh đã được cập nhật hoặc mới vào cơ sở dữ liệu 0 có câu nào
+        imageProductRepository.saveAll(imagesToUpdate);
+
+        // Xử lý các danh mục (tương tự logic ban đầu của bạn)
         List<CategoryDto> categoryDtos = productDto.getCategories().stream()
                 .map(categoryDto -> {
                     categoryDto.setCreatedBy(modifiedBy);
@@ -581,15 +631,12 @@ public class ProductService implements IProductService {
 
         ProductDto result = productMapper.toDto(product);
         result.setCategories(categoryMapper.DTO_LIST(categories));
-
-        // Set updated images to the result
-        result.setImageProducts(imageProductMapper.DTO_LIST(newImageProducts));
+        result.setImageProducts(imageProductMapper.DTO_LIST(imagesToUpdate));  // Cập nhật danh sách ảnh với ảnh mới
 
         apiResponse.setResult(result);
         apiResponse.setMessage(messageSource.getMessage("success.update", null, LocaleContextHolder.getLocale()));
         return apiResponse;
     }
-
 
     public void deleteImageFromFileSystem(String imagePath) {
         try {
@@ -649,7 +696,7 @@ public class ProductService implements IProductService {
 
 
         if (!productRepository.existsById(id)) {
-            throw new AppException(ErrorCode.STUDENT_NOT_FOUND);
+            throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
         }
 
         productRepository.deleteById(id);
