@@ -23,7 +23,7 @@ public class ImageCategory {
 
     @Column(name = "image_path")
     private String imagePath;
-    
+
     @Column(name = "status")
     private String status;
 
@@ -41,7 +41,7 @@ public class ImageCategory {
     @Column(name = "modified_by")
     private String modifiedBy;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 }

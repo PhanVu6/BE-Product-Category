@@ -15,6 +15,7 @@ public interface ProductCategoryRepository extends JpaRepository<ProductCategory
     @Query(
             value = "from ProductCategory pc " +
                     "join fetch pc.product p " +
+                    "join fetch p.imageProducts ip " +
                     "join fetch pc.category c " +
                     "where p.id = :productId"
     )
@@ -25,4 +26,10 @@ public interface ProductCategoryRepository extends JpaRepository<ProductCategory
     void changeStatusByProductAndCategories(@Param("productId") Long productId,
                                             @Param("categoryIds") Set<Long> categoryIds,
                                             @Param("status") String status);
+
+    @Query("SELECT sc FROM ProductCategory sc WHERE sc.product.id = :productId")
+    List<ProductCategory> findProductCategoryByIdProduct(@Param("productId") Long productId);
+
+    @Query("SELECT sc FROM ProductCategory sc WHERE sc.category.id = :categoryId")
+    List<ProductCategory> findProductCategoryByIdCategory(@Param("categoryId") Long categoryId);
 }

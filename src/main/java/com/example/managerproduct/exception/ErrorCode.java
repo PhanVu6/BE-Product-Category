@@ -16,6 +16,7 @@ public enum ErrorCode {
     STUDENT_DISCONECT(1007, "error.studentDisconnect", HttpStatus.BAD_REQUEST),
     ALREADY_DELETED(1008, "error.alreadyDeleted", HttpStatus.BAD_REQUEST),
     STUDENT_EXISTS_COURSE(1009, "error.existsCourse", HttpStatus.BAD_REQUEST),
+    IMAGE_NOT_FOUND(10012, "error.image.not.found", HttpStatus.BAD_REQUEST),
     PRODUCT_EXISTS(1004, "error.product.exists", HttpStatus.BAD_REQUEST),
     PRODUCT_CODE_ALREADY_EXISTS(1010, "error.product_code.exists", HttpStatus.BAD_REQUEST),
     CATEGORY_CODE_ALREADY_EXISTS(1011, "error.category_code.exists", HttpStatus.BAD_REQUEST);

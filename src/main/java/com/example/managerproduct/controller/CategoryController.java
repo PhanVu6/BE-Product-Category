@@ -4,6 +4,7 @@ import com.example.managerproduct.dto.request.CreateCategoryDto;
 import com.example.managerproduct.dto.request.UpdateCategoryDto;
 import com.example.managerproduct.dto.response.ApiResponse;
 import com.example.managerproduct.dto.response.CategoryDto;
+import com.example.managerproduct.repository.CategoryRepository;
 import com.example.managerproduct.service.Impl.CategoryService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
@@ -24,9 +25,11 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:5173")
 public class CategoryController {
     private final CategoryService categoryService;
+    private final CategoryRepository categoryRepository;
 
     @GetMapping
     public ApiResponse<Page<CategoryDto>> getAllProduct(@RequestParam(value = "name", required = false) String name,
+                                                        @RequestParam(value = "status", required = false) String status,
                                                         @RequestParam(value = "categoryCode", required = false) String categoryCode,
                                                         @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
                                                         @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
@@ -35,7 +38,22 @@ public class CategoryController {
         categoryCode = (categoryCode == null || categoryCode.trim().isEmpty()) ? null : categoryCode;
 
         Pageable pageable = PageRequest.of(page, size);
-        return categoryService.getAllCategory(name, categoryCode, startDate, endDate, pageable);
+        return categoryService.getAllCategory(name, status, categoryCode, startDate, endDate, pageable);
+    }
+
+    @GetMapping("new")
+    public Page<Object[]> search(@RequestParam(value = "name", required = false) String name,
+                                 @RequestParam(value = "status", required = false) String status,
+                                 @RequestParam(value = "categoryCode", required = false) String categoryCode,
+                                 @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                 @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+                                 @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+                                 @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
+        categoryCode = (categoryCode == null || categoryCode.trim().isEmpty()) ? null : categoryCode;
+
+        Pageable pageable = PageRequest.of(page, size);
+//        return categoryService.getAllCategory(name, categoryCode, startDate, endDate, pageable);
+        return categoryRepository.searchAll(name, status, categoryCode, startDate, endDate, pageable);
     }
 
     @GetMapping("{id}")
@@ -82,7 +100,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("{id}")
-    public ApiResponse<Boolean> delete(@PathVariable(value = "id", required = false) Long id) {
-        return categoryService.delete(id);
+    public ApiResponse<CategoryDto> delete(@PathVariable(value = "id", required = false) Long id) {
+        return categoryService.deleteMem(id);
     }
 }

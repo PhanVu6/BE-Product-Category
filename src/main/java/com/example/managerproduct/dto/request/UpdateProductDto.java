@@ -51,5 +51,7 @@ public class UpdateProductDto {
 
     private List<@Valid CategoryDto> categories;
 
+    private List<Long> imageIds;
+
     private List<MultipartFile> imageProducts;
 }

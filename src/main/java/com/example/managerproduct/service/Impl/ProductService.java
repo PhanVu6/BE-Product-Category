@@ -191,159 +191,6 @@ public class ProductService implements IProductService {
 
     @Transactional
     @Override
-    public ApiResponse<ProductDto> create(CreateProductDto productDto, String createBy) {
-        ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
-        apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
-
-        if (productRepository.existsByProductCode(productDto.getProductCode())) {
-            throw new AppException(ErrorCode.PRODUCT_CODE_ALREADY_EXISTS);  // Tùy biến exception của bạn
-        }
-
-        Product createProduct = createProductMapper.toEntity(productDto);
-        createProduct.setCreatedDate(new Date());
-        createProduct.setCreatedBy(createBy);
-        createProduct = productRepository.save(createProduct);
-
-        Product product = createProduct;
-
-        // Tạo trực tiếp Category mới
-        List<CategoryDto> categoryDtos = productDto.getCategories().stream()
-                .map(categoryDto -> {
-                    // Lưu thời gian tạo mới
-                    categoryDto.setCreatedBy(createBy);
-                    categoryDto.setCreatedDate(new Date());
-                    return categoryDto;
-                }).collect(Collectors.toList());
-        List<Category> categories = CategoryMapper.INSTANCE.ENTITY_LIST(categoryDtos);
-        categories = categoryRepository.saveAll(categories);
-
-        // Lấy ra id các Categry mới
-        Set<Long> idCategoriesNew = categories.stream()
-                .map(Category::getId)
-                .collect(Collectors.toSet());
-
-        // Thêm các Category id update và mới create
-        Set<Long> newCategoryIds = new HashSet<>(productDto.getCategoryIds());
-        newCategoryIds.addAll(idCategoriesNew);
-
-
-        // Lấy tất cả Categoy id để cập nhập trong StudentCourse
-        categories = categoryRepository.findAllById(newCategoryIds);
-
-        Set<ProductCategory> newProductCategory = categories.stream()
-                .map(category -> {
-                    ProductCategory productCategory = new ProductCategory();
-
-                    productCategory.setCreatedDate(new Date());
-                    productCategory.setCreatedBy(createBy);
-                    productCategory.setProduct(product);
-                    productCategory.setCategory(category);
-                    productCategory.setStatus("AVAILABLE");
-                    return productCategory;
-                })
-                .collect(Collectors.toSet());
-
-
-        productCategoryRepository.saveAll(newProductCategory);
-
-        ProductDto result = productMapper.toDto(product);
-        result.setCategories(categoryMapper.DTO_LIST(categories));
-
-        apiResponse.setResult(result);
-
-        apiResponse.setResult(result);
-        apiResponse.setMessage(messageSource.getMessage("success.create", null, LocaleContextHolder.getLocale()));
-        return apiResponse;
-    }
-
-    @Transactional
-    @Override
-    public ApiResponse<ProductDto> update(UpdateProductDto productDto, String modifiedBy) {
-        ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
-        apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
-
-        Long id = productDto.getId();
-        // Kiểm tra xem productCode đã tồn tại với sản phẩm khác chưa
-        if (productRepository.existsByProductCodeAndIdNot(productDto.getProductCode(), id)) {
-            throw new AppException(ErrorCode.PRODUCT_CODE_ALREADY_EXISTS);  // Tùy biến exception của bạn
-        }
-
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
-
-        updateProductMapper.updateProductFromDto(productDto, product);
-        product.setId(id);
-        product.setModifiedDate(new Date());
-        product.setModifiedBy(modifiedBy);
-
-        // Tạo trực tiếp Category mới
-        List<CategoryDto> categoryDtos = productDto.getCategories().stream()
-                .map(categoryDto -> {
-                    // Lưu thời gian tạo mới
-                    categoryDto.setCreatedBy(modifiedBy);
-                    categoryDto.setCreatedDate(new Date());
-                    return categoryDto;
-                }).collect(Collectors.toList());
-        List<Category> categories = CategoryMapper.INSTANCE.ENTITY_LIST(categoryDtos);
-        categories = categoryRepository.saveAll(categories);
-
-        // Lấy ra id các Categry mới
-        Set<Long> idCategoriesNew = categories.stream()
-                .map(Category::getId)
-                .collect(Collectors.toSet());
-
-        // Lấy ra ProductCategory có quan hệ theo id Product
-        List<ProductCategory> existingPC = productCategoryRepository.findByProductId(product.getId());
-        Map<Long, ProductCategory> productCategoryMap = existingPC.stream()
-                .collect(Collectors.toMap(pc -> pc.getCategory().getId(), pc -> pc));
-
-        // Thêm các Category id update và mới create
-        Set<Long> newCategoryIds = new HashSet<>(productDto.getCategoryIds());
-        newCategoryIds.addAll(idCategoriesNew);
-
-        // Lấy ra các id có trong student course, nhưng không có trong update để hủy Course
-        Set<Long> idToCloseCategories = productCategoryMap.keySet().stream()
-                .filter(idRelation -> !newCategoryIds.contains(idRelation))
-                .collect(Collectors.toSet());
-
-        if (!idToCloseCategories.isEmpty()) {
-            productCategoryRepository.changeStatusByProductAndCategories(product.getId(), idToCloseCategories, "UNAVAILABLE");
-        }
-
-        // Lấy tất cả Categoy id để cập nhập trong StudentCourse
-        categories = categoryRepository.findAllById(newCategoryIds);
-
-        Set<ProductCategory> newProductCategory = categories.stream()
-                .map(category -> {
-                    ProductCategory productCategory = productCategoryMap.get(category.getId());
-                    if (productCategory == null) {
-                        productCategory = new ProductCategory();
-
-                        productCategory.setCreatedDate(new Date());
-                        productCategory.setCreatedBy(modifiedBy);
-                    }
-                    productCategory.setProduct(product);
-                    productCategory.setCategory(category);
-                    productCategory.setModifiedDate(new Date());
-                    productCategory.setModifiedBy(modifiedBy);
-                    productCategory.setStatus("AVAILABLE");
-                    return productCategory;
-                })
-                .collect(Collectors.toSet());
-
-
-        productCategoryRepository.saveAll(newProductCategory);
-
-        ProductDto result = productMapper.toDto(product);
-        result.setCategories(categoryMapper.DTO_LIST(categories));
-
-        apiResponse.setResult(result);
-        apiResponse.setMessage(messageSource.getMessage("success.update", null, LocaleContextHolder.getLocale()));
-        return apiResponse;
-    }
-
-    @Transactional
-    @Override
     public ApiResponse<ProductDto> create(CreateProductDto productDto, MultipartFile[] images, String createBy) {
         ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
@@ -351,6 +198,21 @@ public class ProductService implements IProductService {
         if (productRepository.existsByProductCode(productDto.getProductCode())) {
             throw new AppException(ErrorCode.PRODUCT_CODE_ALREADY_EXISTS);  // Tùy biến exception của bạn
         }
+
+        // Xử lý Category code nếu có
+        if (productDto.getCategories() != null && !productDto.getCategories().isEmpty()) {
+            Set<String> categoryCodes = productDto.getCategories().stream()
+                    .map(CategoryDto::getCategoryCode)
+                    .collect(Collectors.toSet());
+
+            List<String> existingCodes = categoryRepository.findExistingCategoryCodes(categoryCodes);
+
+            // Báo categoryCode đã tồn tại
+            if (!existingCodes.isEmpty()) {
+                throw new AppException(ErrorCode.CATEGORY_CODE_ALREADY_EXISTS);
+            }
+        }
+
 
         Product createProduct = createProductMapper.toEntity(productDto);
         createProduct.setCreatedDate(new Date());
@@ -373,6 +235,7 @@ public class ProductService implements IProductService {
                     imageProduct.setProduct(createProduct);
                     imageProduct.setCreatedBy(createBy);
                     imageProduct.setCreatedDate(new Date());
+                    imageProduct.setStatus("AVAILABLE");
 
                     imageProducts.add(imageProduct);
                 }
@@ -452,72 +315,37 @@ public class ProductService implements IProductService {
         }
     }
 
-    private List<ImageProduct> saveImageToDB(MultipartFile[] images, Product product, String modifiedBy) {
+    private List<ImageProduct> saveImagesToDB(MultipartFile[] images, Product product, String modifiedBy) {
 
         List<ImageProduct> imagesToCreate = new ArrayList<>();
         // yêu cầu tải ảnh mới với MultipartFile
-        for (MultipartFile file : images) {
-            if (!file.isEmpty()) {
-                String imageName = saveImageToFileSystem(file);  // Lưu ảnh và lấy tên tệp duy nhất
-                String imagePath = IMAGE_DIRECTORY + "\\" + imageName;
+        if (images != null) {
+            for (MultipartFile file : images) {
+                if (!file.isEmpty()) {
+                    String imageName = saveImageToFileSystem(file);  // Lưu ảnh và lấy tên tệp duy nhất
+                    String imagePath = IMAGE_DIRECTORY + "\\" + imageName;
 
-                ImageProduct newImageProduct = new ImageProduct();
-                newImageProduct.setImageName(imageName);
-                newImageProduct.setImagePath(imagePath);
-                newImageProduct.setProduct(product);
-                newImageProduct.setCreatedDate(new Date());
-                newImageProduct.setCreatedBy(modifiedBy);
-                newImageProduct.setModifiedDate(new Date());
-                newImageProduct.setModifiedBy(modifiedBy);
-                newImageProduct.setStatus("AVAILABLE");
+                    ImageProduct newImageProduct = new ImageProduct();
+                    newImageProduct.setImageName(imageName);
+                    newImageProduct.setImagePath(imagePath);
+                    newImageProduct.setProduct(product);
+                    newImageProduct.setCreatedDate(new Date());
+                    newImageProduct.setCreatedBy(modifiedBy);
+                    newImageProduct.setModifiedDate(new Date());
+                    newImageProduct.setModifiedBy(modifiedBy);
+                    newImageProduct.setStatus("AVAILABLE");
 
-                imagesToCreate.add(newImageProduct);
+                    imagesToCreate.add(newImageProduct);
+                }
             }
         }
 
-
-        // Lưu các ảnh đã được cập nhật hoặc mới vào cơ sở dữ liệu 0 có câu nào
-        return imageProductRepository.saveAll(imagesToCreate);
+        return imagesToCreate;
     }
 
-    ;
-
-    @Transactional
-    @Override
-    public ApiResponse<ProductDto> update(UpdateProductDto productDto, MultipartFile[] images, List<Long> imageIdsToDelete, String modifiedBy) {
-        ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
-        apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
-
-        Long id = productDto.getId();
-        // Kiểm tra xem productCode đã tồn tại với sản phẩm khác chưa
-        if (productRepository.existsByProductCodeAndIdNot(productDto.getProductCode(), id)) {
-            throw new AppException(ErrorCode.PRODUCT_CODE_ALREADY_EXISTS);  // Tùy biến exception của bạn
-        }
-//        select 2 lần
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
-
-        updateProductMapper.updateProductFromDto(productDto, product);
-        product.setId(id);
-        product.setModifiedDate(new Date());
-        product.setModifiedBy(modifiedBy);
-
-        // Xử lý Category nếu có
-        if (productDto.getCategories() != null && !productDto.getCategories().isEmpty()) {
-            Set<String> categoryCodes = productDto.getCategories().stream()
-                    .map(CategoryDto::getCategoryCode)
-                    .collect(Collectors.toSet());
-
-            List<String> existingCodes = categoryRepository.findExistingCategoryCodes(categoryCodes);
-
-            // Báo categoryCode đã tồn tại
-            if (!existingCodes.isEmpty()) {
-                throw new AppException(ErrorCode.CATEGORY_CODE_ALREADY_EXISTS);
-            }
-        }
-
+    private List<ImageProduct> updateStatusImages(List<Long> imageIdsToDelete, String modifiedBy, Long productId) throws RuntimeException {
         // Xử lý ảnh sản phẩm
-        List<ImageProduct> existingImages = imageProductRepository.findByProductId(id);
+        List<ImageProduct> existingImages = imageProductRepository.findByProductId(productId);
         Map<Long, ImageProduct> existingImagesMap = existingImages.stream()
                 .collect(Collectors.toMap(ImageProduct::getId, img -> img));
 
@@ -554,32 +382,54 @@ public class ProductService implements IProductService {
                 imageProduct.setModifiedBy(modifiedBy);
                 imagesToUpdate.add(imageProduct);
 
-                // Nếu ảnh không tồn tại, tạo mới (nếu yêu cầu tải ảnh mới với MultipartFile)
-                for (MultipartFile file : images) {
-                    if (!file.isEmpty()) {
-                        String imageName = saveImageToFileSystem(file);  // Lưu ảnh và lấy tên tệp duy nhất
-                        String imagePath = IMAGE_DIRECTORY + "\\" + imageName;
-
-                        ImageProduct newImageProduct = new ImageProduct();
-                        newImageProduct.setImageName(imageName);
-                        newImageProduct.setImagePath(imagePath);
-                        newImageProduct.setProduct(product);
-                        newImageProduct.setCreatedDate(new Date());
-                        newImageProduct.setCreatedBy(modifiedBy);
-                        newImageProduct.setModifiedDate(new Date());
-                        newImageProduct.setModifiedBy(modifiedBy);
-                        newImageProduct.setStatus("AVAILABLE");
-
-                        imagesToUpdate.add(newImageProduct);
-                    }
-                }
             }
         }
 
-        // Lưu các ảnh đã được cập nhật hoặc mới vào cơ sở dữ liệu 0 có câu nào
-        imageProductRepository.saveAll(imagesToUpdate);
+        return (imagesToUpdate);
 
-        // Xử lý các danh mục (tương tự logic ban đầu của bạn)
+    }
+
+    @Transactional
+    @Override
+    public ApiResponse<ProductDto> update(UpdateProductDto productDto, MultipartFile[] images, String modifiedBy) {
+        ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
+        apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
+
+        Long id = productDto.getId();
+        // Kiểm tra xem productCode đã tồn tại với sản phẩm khác chưa
+        if (productRepository.existsByProductCodeAndIdNot(productDto.getProductCode(), id)) {
+            throw new AppException(ErrorCode.PRODUCT_CODE_ALREADY_EXISTS);  // Tùy biến exception của bạn
+        }
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        updateProductMapper.updateProductFromDto(productDto, product);
+        product.setId(id);
+        product.setModifiedDate(new Date());
+        product.setModifiedBy(modifiedBy);
+
+        // Xử lý Category code nếu có
+        if (productDto.getCategories() != null && !productDto.getCategories().isEmpty()) {
+            Set<String> categoryCodes = productDto.getCategories().stream()
+                    .map(CategoryDto::getCategoryCode)
+                    .collect(Collectors.toSet());
+
+            List<String> existingCodes = categoryRepository.findExistingCategoryCodes(categoryCodes);
+
+            // Báo categoryCode đã tồn tại
+            if (!existingCodes.isEmpty()) {
+                throw new AppException(ErrorCode.CATEGORY_CODE_ALREADY_EXISTS);
+            }
+        }
+
+        // Xử lý ảnh sản phẩm
+        List<ImageProduct> imagesToUpdate = new ArrayList<>();
+        imagesToUpdate.addAll(updateStatusImages(productDto.getImageIds(), modifiedBy, id));
+        imagesToUpdate.addAll(saveImagesToDB(images, product, modifiedBy));
+        imagesToUpdate = imageProductRepository.saveAll(imagesToUpdate);
+
+        // Xử lý các danh mục
         List<CategoryDto> categoryDtos = productDto.getCategories().stream()
                 .map(categoryDto -> {
                     categoryDto.setCreatedBy(modifiedBy);
@@ -608,7 +458,9 @@ public class ProductService implements IProductService {
             productCategoryRepository.changeStatusByProductAndCategories(product.getId(), idToCloseCategories, "UNAVAILABLE");
         }
 
-        categories = categoryRepository.findAllById(newCategoryIds);
+        categories = categoryRepository.findAllById(newCategoryIds).stream()
+                .filter(category -> "AVAILABLE".equals(category.getStatus()))
+                .collect(Collectors.toList());
 
         Set<ProductCategory> newProductCategory = categories.stream()
                 .map(category -> {
@@ -671,12 +523,12 @@ public class ProductService implements IProductService {
             product.setModifiedDate(new Date());
             productRepository.save(product);
 
-//            List<ProductCategory> productCourses = productRepository.findProductCategoryByIdProduct(product.getId());
-//            productCourses.forEach(sc -> sc.setStatus("0"));
-//            productCourses.forEach(sc -> sc.setModifiedDate(new Date()));
-//            productCourses.forEach(sc -> sc.setModifiedBy("admin"));
-//
-//            productCategoryRepository.saveAll(productCourses);
+            List<ProductCategory> productCourses = productCategoryRepository.findProductCategoryByIdProduct(product.getId());
+            productCourses.forEach(sc -> sc.setStatus("UNAVAILABLE"));
+            productCourses.forEach(sc -> sc.setModifiedDate(new Date()));
+            productCourses.forEach(sc -> sc.setModifiedBy("admin"));
+
+            productCategoryRepository.saveAll(productCourses);
 
             ProductDto productDto = productMapper.toDto(product);
             apiResponse.setMessage(messageSource.getMessage("success.soft.delete", null, LocaleContextHolder.getLocale()));

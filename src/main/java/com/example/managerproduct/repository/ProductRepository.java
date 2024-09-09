@@ -39,8 +39,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query(value = "select p.*, GROUP_CONCAT(DISTINCT c.name SEPARATOR ', ') AS category " +
             "from product p " +
-            "left join productcategory pc on pc.product_id = p.id " +
-            "left join category c on c.id = pc.category_id " +
+            "left join productcategory pc on pc.product_id = p.id and pc.status = 'AVAILABLE' " +
+            "left join category c on c.id = pc.category_id and c.status = 'AVAILABLE' " +
             "where p.status = :status " +
             "and (:name is null or p.name like concat('%', :name, '%')) " +
             "and (:productCode is null or p.product_code like concat('%', :productCode, '%')) " +
@@ -50,8 +50,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "order by p.created_date",
             countQuery = "select count(distinct p.id) " +
                     "from product p " +
-                    "left join productcategory pc on pc.product_id = p.id " +
-                    "left join category c on c.id = pc.category_id " +
                     "where p.status = :status " +
                     "and (:name is null or p.name like concat('%', :name, '%')) " +
                     "and (:productCode is null or p.product_code like concat('%', :productCode, '%')) " +

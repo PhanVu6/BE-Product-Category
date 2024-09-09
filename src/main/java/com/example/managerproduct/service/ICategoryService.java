@@ -13,7 +13,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface ICategoryService {
-    ApiResponse<Page<CategoryDto>> getAllCategory(String name, String categoryCode, LocalDate startDate, LocalDate endDate, Pageable pageable);
+    ApiResponse<Page<CategoryDto>> getAllCategory(String name, String status, String categoryCode, LocalDate startDate, LocalDate endDate, Pageable pageable);
 
     ApiResponse<List<CategoryDto>> open(String name);
 
@@ -28,6 +28,9 @@ public interface ICategoryService {
     ApiResponse<CategoryDto> updateCategoryImages(UpdateCategoryDto categoryDto, MultipartFile[] images, String modifiedBy);
 
     ApiResponse<CategoryDto> update(UpdateCategoryDto categoryDto, String modifiedBy);
+
+    @Transactional
+    ApiResponse<CategoryDto> deleteMem(Long id);
 
     ApiResponse<Boolean> delete(Long id);
 }

@@ -39,6 +39,7 @@ public class UpdateCategoryDto {
     @Pattern(regexp = "AVAILABLE|UNAVAILABLE", message = "error.statusInput")
     private String status;
 
+    private List<Long> imageIds;
 
     private List<MultipartFile> imageProducts;
 }

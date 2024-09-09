@@ -17,10 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("product")
@@ -47,19 +43,7 @@ public class ProductController {
     public ApiResponse<ProductDto> getById(@PathVariable("id") Long id) {
         return productService.getById(id);
     }
-
-    @PostMapping
-    public ApiResponse<ProductDto> create(@RequestBody @Valid CreateProductDto productDto, String createBy) {
-        createBy = "admin";
-        return productService.create(productDto, createBy);
-    }
-
-    @PutMapping
-    public ApiResponse<ProductDto> update(@RequestBody @Valid UpdateProductDto productDto, String modifiedBy) {
-        modifiedBy = "admin";
-        return productService.update(productDto, modifiedBy);
-    }
-
+    
     @PostMapping("img")
     public ApiResponse<ProductDto> create(@RequestPart("product") @Valid CreateProductDto productDto,
                                           @RequestPart(value = "files", required = false) MultipartFile[] multipartFiles,
@@ -74,26 +58,10 @@ public class ProductController {
     @PutMapping("img")
     public ApiResponse<ProductDto> update(@RequestPart("product") @Valid UpdateProductDto productDto,
                                           @RequestPart(value = "files", required = false) MultipartFile[] multipartFiles,
-                                          @RequestParam("idImg") String idImg,
                                           String modifiedBy) throws JsonProcessingException {
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        UpdateProductDto productDtoToJson = objectMapper.readValue(productDto, UpdateProductDto.class);
 
         modifiedBy = "admin";
-        
-        // Xử lý chuỗi idImg để loại bỏ dấu [] nếu có
-        if (idImg != null) {
-            idImg = idImg.replaceAll("[\\[\\]]", ""); // Loại bỏ dấu ngoặc vuông
-        }
-
-        // Kiểm tra nếu idImg là null hoặc chuỗi rỗng
-        List<Long> imageIdsToDelete = (idImg == null || idImg.trim().isEmpty())
-                ? Collections.emptyList()
-                : Arrays.stream(idImg.split(","))
-                .map(Long::parseLong)
-                .collect(Collectors.toList());
-
-        return productService.update(productDto, multipartFiles, imageIdsToDelete, modifiedBy);
+        return productService.update(productDto, multipartFiles, modifiedBy);
     }
 
     @DeleteMapping("hard/{id}")
