@@ -123,10 +123,6 @@ public class CategoryService implements ICategoryService {
         ApiResponse<CategoryDto> apiResponse = new ApiResponse<>();
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
-        if (!categoryRepository.existsById(id)) {
-            throw new AppException(ErrorCode.COURSE_NOT_FOUND);
-        }
-
         Category category = categoryRepository.getById(id);
 
         CategoryDto result = categoryMapper.toDto(category);

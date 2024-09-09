@@ -167,10 +167,6 @@ public class ProductService implements IProductService {
         ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
-        if (!productRepository.existsById(id)) {
-            throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
-        }
-
         Product product = productRepository.getById(id);
         List<Category> categories = product.getProductCategories()
                 .stream().filter(pc -> pc.getStatus().equals("AVAILABLE")
@@ -396,10 +392,6 @@ public class ProductService implements IProductService {
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
         Long id = productDto.getId();
-        // Kiểm tra xem productCode đã tồn tại với sản phẩm khác chưa
-        if (productRepository.existsByProductCodeAndIdNot(productDto.getProductCode(), id)) {
-            throw new AppException(ErrorCode.PRODUCT_CODE_ALREADY_EXISTS);  // Tùy biến exception của bạn
-        }
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));

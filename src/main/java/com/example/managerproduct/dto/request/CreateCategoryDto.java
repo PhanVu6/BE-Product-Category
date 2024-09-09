@@ -21,6 +21,7 @@ public class CreateCategoryDto {
     @Size(max = 50, min = 2, message = "error.invalidInput")
     private String name;
 
+    @Size(max = 255, message = "error.invalidInput.description")
     private String description;
 
     @NotBlank(message = "error.notBlank")

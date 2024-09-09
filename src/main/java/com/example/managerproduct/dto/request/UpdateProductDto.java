@@ -29,6 +29,7 @@ public class UpdateProductDto {
     @Size(max = 50, min = 2, message = "error.invalidInput.name")
     private String name;
 
+    @Size(max = 255, message = "error.invalidInput.description")
     private String description;
 
     @NotNull(message = "error.notBlank")
