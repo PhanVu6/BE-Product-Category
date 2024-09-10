@@ -9,10 +9,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public interface IProductService {
 
-    ApiResponse<Page<ProductDto>> getAllProduct(String name, String status, String productCode, LocalDate startDate, LocalDate endDate, Pageable pageable);
+    ApiResponse<Page<ProductDto>> getAllProduct(String name, String status, String productCode, LocalDate startDate, LocalDateTime endDate, Pageable pageable);
 
     ApiResponse<Page<ProductDto>> open(String str, Pageable pageable);
 

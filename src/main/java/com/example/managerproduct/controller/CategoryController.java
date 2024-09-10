@@ -38,6 +38,8 @@ public class CategoryController {
         categoryCode = (categoryCode == null || categoryCode.trim().isEmpty()) ? null : categoryCode;
 
         Pageable pageable = PageRequest.of(page, size);
+
+
         return categoryService.getAllCategory(name, status, categoryCode, startDate, endDate, pageable);
     }
 

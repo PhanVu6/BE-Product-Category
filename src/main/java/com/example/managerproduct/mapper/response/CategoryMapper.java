@@ -3,6 +3,7 @@ package com.example.managerproduct.mapper.response;
 import com.example.managerproduct.dto.response.CategoryDto;
 import com.example.managerproduct.entity.Category;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
@@ -11,11 +12,12 @@ import java.util.List;
 public interface CategoryMapper {
     CategoryMapper INSTANCE = Mappers.getMapper(CategoryMapper.class);
 
-    Category toEntity(CategoryDto productDto);
+    Category toEntity(CategoryDto categoryDto);
 
-    CategoryDto toDto(Category product);
+    @Mapping(target = "imageCategories", ignore = true)
+    CategoryDto toDto(Category category);
 
-    List<CategoryDto> DTO_LIST(List<Category> products);
+    List<CategoryDto> DTO_LIST(List<Category> categories);
 
-    List<Category> ENTITY_LIST(List<CategoryDto> productDtos);
+    List<Category> ENTITY_LIST(List<CategoryDto> categoryDtos);
 }

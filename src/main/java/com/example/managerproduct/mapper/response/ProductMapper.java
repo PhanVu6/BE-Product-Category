@@ -3,6 +3,7 @@ package com.example.managerproduct.mapper.response;
 import com.example.managerproduct.dto.response.ProductDto;
 import com.example.managerproduct.entity.Product;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
@@ -13,6 +14,7 @@ public interface ProductMapper {
 
     Product toEntity(ProductDto productDto);
 
+    @Mapping(target = "imageProducts", ignore = true)
     ProductDto toDto(Product product);
 
     List<ProductDto> DTO_LIST(List<Product> products);

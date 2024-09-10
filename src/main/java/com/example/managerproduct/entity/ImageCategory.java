@@ -41,7 +41,7 @@ public class ImageCategory {
     @Column(name = "modified_by")
     private String modifiedBy;
 
-    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 }

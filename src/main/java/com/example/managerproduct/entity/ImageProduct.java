@@ -42,7 +42,7 @@ public class ImageProduct {
     @Column(name = "modified_by")
     private String modifiedBy;
 
-    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 }

@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @RestController
 @RequestMapping("product")
@@ -36,14 +38,22 @@ public class ProductController {
                                                        @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
         productCode = (productCode == null || productCode.trim().isEmpty()) ? null : productCode;
         Pageable pageable = PageRequest.of(page, size);
-        return productService.getAllProduct(name, status, productCode, startDate, endDate, pageable);
+
+        // Chuyển endDate thành LocalDateTime với giờ cuối ngày nếu có
+        LocalDateTime endDateEndOfDay = null;
+        if (endDate != null) {
+            endDateEndOfDay = endDate.atTime(LocalTime.MAX); // 23:59:59
+        }
+
+        return productService.getAllProduct(name, status, productCode, startDate, endDateEndOfDay, pageable);
     }
+
 
     @GetMapping("{id}")
     public ApiResponse<ProductDto> getById(@PathVariable("id") Long id) {
         return productService.getById(id);
     }
-    
+
     @PostMapping("img")
     public ApiResponse<ProductDto> create(@RequestPart("product") @Valid CreateProductDto productDto,
                                           @RequestPart(value = "files", required = false) MultipartFile[] multipartFiles,

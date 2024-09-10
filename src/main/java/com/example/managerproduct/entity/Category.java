@@ -1,5 +1,6 @@
 package com.example.managerproduct.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -49,9 +50,9 @@ public class Category {
     private String status;
 
     @OneToMany(mappedBy = "category", cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE})
-//    @JsonBackReference
     private Set<ProductCategory> productCategories;
 
     @OneToMany(mappedBy = "category", cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @JsonBackReference
     private Set<ImageCategory> imageCategories;
 }

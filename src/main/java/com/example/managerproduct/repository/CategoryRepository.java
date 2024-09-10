@@ -14,6 +14,7 @@ import java.util.Set;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
+
     @Query(value = "select distinct c " +
             "from Category c " +
             "left join fetch c.imageCategories i " +

@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -60,7 +61,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                              @Param("status") String status,
                              @Param("productCode") String productCode,
                              @Param("startDate") LocalDate startDate,
-                             @Param("endDate") LocalDate endDate,
+                             @Param("endDate") LocalDateTime endDate,
                              Pageable pageable);
 
 

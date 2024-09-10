@@ -36,6 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -87,7 +88,7 @@ public class ProductService implements IProductService {
 //    }
 
     @Override
-    public ApiResponse<Page<ProductDto>> getAllProduct(String name, String status, String productCode, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    public ApiResponse<Page<ProductDto>> getAllProduct(String name, String status, String productCode, LocalDate startDate, LocalDateTime endDate, Pageable pageable) {
         ApiResponse<Page<ProductDto>> apiResponse = new ApiResponse<>();
         apiResponse.setMessage(messageSource.getMessage("error.operation", null, LocaleContextHolder.getLocale()));
 
@@ -398,6 +399,7 @@ public class ProductService implements IProductService {
 
         updateProductMapper.updateProductFromDto(productDto, product);
         product.setId(id);
+        product.setProductCode(product.getProductCode());
         product.setModifiedDate(new Date());
         product.setModifiedBy(modifiedBy);
 

@@ -126,6 +126,7 @@ public class CategoryService implements ICategoryService {
         Category category = categoryRepository.getById(id);
 
         CategoryDto result = categoryMapper.toDto(category);
+        result.setImageCategories(imageCategoryMapper.DTO_LIST(category.getImageCategories().stream().toList()));
 
         apiResponse.setMessage(messageSource.getMessage("success.get.all", null, LocaleContextHolder.getLocale()));
         apiResponse.setResult(result);
@@ -292,6 +293,7 @@ public class CategoryService implements ICategoryService {
 
         updateCategoryMapper.updateCategoryFromDto(categoryDto, category);
         category.setId(id);
+        category.setCategoryCode(category.getCategoryCode());
         category.setModifiedDate(new Date());
         category.setModifiedBy(modifiedBy);
 
